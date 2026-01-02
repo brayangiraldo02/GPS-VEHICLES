@@ -10,9 +10,14 @@
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
+          "type": "component",
           "standalone": false
         },
+        "@schematics/angular:service": {
+          "type": "service"
+        },
         "@schematics/angular:directive": {
+          "type": "directive",
           "standalone": false
         },
         "@schematics/angular:pipe": {
