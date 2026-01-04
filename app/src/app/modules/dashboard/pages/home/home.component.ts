@@ -8,36 +8,47 @@ import { Component } from '@angular/core';
 })
 export class HomeComponent {
   menuOptions = [
-    { title: 'Tablas', icon: 'table_view', route: '/tablas', color: 'text-blue-600 bg-blue-100' },
+    {
+      title: 'Tablas',
+      icon: 'table_view',
+      route: '/tablas',
+      color: 'text-indigo-500 bg-indigo-50',
+      hoverColor: 'group-hover:text-indigo-600'
+    },
     {
       title: 'Inventarios',
       icon: 'inventory_2',
       route: '/inventarios',
-      color: 'text-orange-600 bg-orange-100',
+      color: 'text-orange-400 bg-orange-50',
+      hoverColor: 'group-hover:text-orange-500'
     },
     {
       title: 'Facturación',
       icon: 'receipt_long',
       route: '/facturacion',
-      color: 'text-green-600 bg-green-100',
+      color: 'text-emerald-500 bg-emerald-50',
+      hoverColor: 'group-hover:text-emerald-600'
     },
     {
       title: 'Cartera',
       icon: 'account_balance_wallet',
       route: '/cartera',
-      color: 'text-purple-600 bg-purple-100',
+      color: 'text-violet-500 bg-violet-50',
+      hoverColor: 'group-hover:text-violet-600'
     },
     {
       title: 'Inspecciones',
       icon: 'fact_check',
       route: '/inspecciones',
-      color: 'text-teal-600 bg-teal-100',
+      color: 'text-rose-500 bg-rose-50',
+      hoverColor: 'group-hover:text-rose-600'
     },
     {
       title: 'Utilidades',
       icon: 'build',
       route: '/utilidades',
-      color: 'text-gray-600 bg-gray-100',
+      color: 'text-slate-500 bg-slate-100',
+      hoverColor: 'group-hover:text-slate-600'
     },
   ];
 }
