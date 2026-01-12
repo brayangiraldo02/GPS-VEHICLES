@@ -1,6 +1,7 @@
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from config.dbconnection import session
+from config.dbconnection import get_db
+from sqlalchemy.orm import Session
 from security.jwt_handler import create_access_token, create_refresh_token, decode_refresh_token
 from schemas.users import LoginRequest
 from models.usuarios import Usuarios
@@ -11,8 +12,7 @@ load_dotenv()
 
 # ---------------------------------------------------------------------------------------------------------------
 
-async def process_login(data: LoginRequest):
-  db = session()
+async def process_login(data: LoginRequest, db: Session):
   user_admin = os.getenv('USER_ADMIN')
   password_admin = os.getenv('PASSWORD_ADMIN')
   try:
@@ -59,8 +59,8 @@ async def process_login(data: LoginRequest):
     }
   except Exception as e:
     return {'error': str(e), 'status_code':500}
-  finally:
-    db.close()
+  # finally:
+  #   db.close()
 
 # ---------------------------------------------------------------------------------------------------------------
 

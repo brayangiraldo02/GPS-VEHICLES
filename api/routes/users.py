@@ -1,14 +1,16 @@
-from fastapi import APIRouter, Response, Request
+from fastapi import APIRouter, Response, Request, Depends
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from schemas.users import LoginRequest
 from controller.users import process_login, refresh_access_token
+from sqlalchemy.orm import Session
+from config.dbconnection import get_db
 
 users_router = APIRouter()
 
 @users_router.post('/login/', tags=["Users"])
-async def login(data: LoginRequest, response: Response):
-  login_result = await process_login(data)
+async def login(data: LoginRequest, response: Response, db: Session = Depends(get_db)):
+  login_result = await process_login(data, db)
 
   if 'error' in login_result:
     return JSONResponse(content=jsonable_encoder({'message': login_result['error']}), status_code=login_result['status_code'])
