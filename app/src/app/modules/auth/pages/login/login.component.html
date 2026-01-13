@@ -8,31 +8,37 @@
     </div>
 
     <mat-card-content>
-      <form class="flex flex-col gap-1">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-1">
         <mat-form-field appearance="fill" class="w-full">
           <mat-label>Usuario</mat-label>
-          <input matInput type="password" required />
+          <input matInput type="text" formControlName="username" required />
           <mat-icon matPrefix class="text-slate-400 mr-2">person</mat-icon>
         </mat-form-field>
 
         <mat-form-field appearance="fill" class="w-full">
           <mat-label>Contraseña</mat-label>
-          <input matInput type="password" required />
+          <input matInput type="password" formControlName="password" required />
           <mat-icon matPrefix class="text-slate-400 mr-2">lock</mat-icon>
         </mat-form-field>
       </form>
     </mat-card-content>
 
     <mat-card-actions class="px-4 pb-2">
-      <!-- TODO: Implementar login -->
       <button
         mat-flat-button
-        class="w-full bg-slate-700! text-white! h-12 rounded-md text-base shadow-md hover:bg-slate-800! transition-colors"
-        routerLink="/"
+        [disabled]="isLoading || loginForm.invalid"
+        (click)="onSubmit()"
+        class="w-full bg-slate-700! text-white! h-12 rounded-md text-base shadow-md hover:bg-slate-800! transition-colors disabled:opacity-60!"
       >
         <div class="flex items-center justify-center gap-2">
-          <mat-icon>login</mat-icon>
-          <span>Ingresar</span>
+          @if(!isLoading){
+            <mat-icon>login</mat-icon>
+            <span>Ingresar</span>
+          }
+          @if(isLoading){
+            <mat-icon class="animate-spin">refresh</mat-icon>
+            <span>Ingresando...</span>
+          }
         </div>
       </button>
     </mat-card-actions>

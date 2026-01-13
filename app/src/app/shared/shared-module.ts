@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatSortModule } from '@angular/material/sort';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [],
@@ -22,7 +23,8 @@ import { MatSortModule } from '@angular/material/sort';
     MatInputModule,
     MatTableModule,
     MatTabsModule,
-    MatSortModule
+    MatSortModule,
+    ReactiveFormsModule
   ],
   exports: [
     MatIconModule,
@@ -33,7 +35,8 @@ import { MatSortModule } from '@angular/material/sort';
     MatInputModule,
     MatTableModule,
     MatTabsModule,
-    MatSortModule
+    MatSortModule,
+    ReactiveFormsModule
   ],
 })
 export class SharedModule {}
