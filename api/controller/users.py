@@ -17,22 +17,21 @@ async def process_login(data: LoginRequest, db: Session):
   password_admin = os.getenv('PASSWORD_ADMIN')
   try:
     if data.username == user_admin and data.password == password_admin:
-      user_data_cookie = {
+      user_data_payload = {
         "codigo": user_admin,
       }
-      user_data_localStorage = {
+      user_data = {
         "id": user_admin,
         "nombre": "Administrador",
       }
-      token_cookie = create_access_token(user_data_cookie)
-      refresh_access_token = create_refresh_token(user_data_cookie)
-      token_localStorage = create_access_token(user_data_localStorage)
+      access_token = create_access_token(user_data_payload)
+      refresh_token = create_refresh_token(user_data_payload)
       
       return {
-        'token_cookie': token_cookie, 
-        'refresh_token': refresh_access_token,
-        'token_localStorage': token_localStorage, 
-        'status_code':200
+        'access_token': access_token, 
+        'refresh_token': refresh_token,
+        'user_data': user_data, 
+        'status_code': 200
       }
     
     user = db.query(Usuarios).filter(Usuarios.CODIGO == data.username).first()
@@ -49,12 +48,12 @@ async def process_login(data: LoginRequest, db: Session):
     access_token = create_access_token(user_data_payload)
     refresh_token = create_refresh_token(user_data_payload)
     
-    token_localStorage = create_access_token({"id": user.CODIGO, "nombre": user.NOMBRE})
+    user_data = {"id": user.CODIGO, "nombre": user.NOMBRE}
 
     return {
       'access_token': access_token,
       'refresh_token': refresh_token,
-      'token_localStorage': token_localStorage,
+      'user_data': user_data,
       'status_code': 200
     }
   except Exception as e:

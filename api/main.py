@@ -10,6 +10,6 @@ app = FastAPI()
 
 app.include_router(users_router, prefix="/users")
 
-@app.get("/")
+@app.get("/", dependencies=[Depends(get_current_user)])
 def main():
   return {"Hello": "World"}
