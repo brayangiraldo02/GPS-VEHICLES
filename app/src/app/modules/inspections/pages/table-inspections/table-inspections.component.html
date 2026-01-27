@@ -1,0 +1,194 @@
+<div class="container mx-auto px-4 py-6">
+  <div class="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4 shrink-0">
+    <div>
+      <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Inspecciones</h2>
+      <p class="text-slate-500 text-sm">Gestiona y revisa el estado de la flota vehicular</p>
+    </div>
+
+    <button
+      mat-flat-button
+      class="bg-slate-700! text-white! rounded-lg h-10 shadow-md"
+      (click)="newInspection()"
+    >
+      <mat-icon class="mr-1">add</mat-icon> Nueva Inspección
+    </button>
+  </div>
+
+  <div
+    class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-auto md:max-h-[calc(100vh-18rem)] min-h-[400px]"
+  >
+    <div
+      class="p-5 border-b border-slate-100 bg-slate-50/50 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3 items-center shrink-0 z-20 relative"
+    >
+      <div class="lg:col-span-3">
+        <mat-form-field
+          appearance="fill"
+          subscriptSizing="dynamic"
+          class="w-full compact-form-field"
+        >
+          <mat-label>Cliente</mat-label>
+          <input matInput placeholder="Buscar..." />
+          <mat-icon matSuffix class="text-slate-400 scale-90">person_search</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <div class="lg:col-span-3">
+        <mat-form-field
+          appearance="fill"
+          subscriptSizing="dynamic"
+          class="w-full compact-form-field"
+        >
+          <mat-label>Vehículo / Placa</mat-label>
+          <input matInput placeholder="Ej. TT450" />
+          <mat-icon matSuffix class="text-slate-400 scale-90">directions_car</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <div class="lg:col-span-4">
+        <mat-form-field
+          appearance="fill"
+          subscriptSizing="dynamic"
+          class="w-full compact-form-field"
+        >
+          <mat-label>Rango de Fechas</mat-label>
+          <mat-date-range-input [rangePicker]="picker">
+            <input matStartDate placeholder="Inicio" />
+            <input matEndDate placeholder="Fin" />
+          </mat-date-range-input>
+          <mat-datepicker-toggle
+            matIconSuffix
+            [for]="picker"
+            class="text-slate-400 scale-90"
+          ></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
+      </div>
+
+      <div class="lg:col-span-2 flex gap-2 h-12 items-center">
+        <button
+          mat-flat-button
+          color="primary"
+          class="h-full w-full rounded-lg shadow-none hover:shadow-md transition-all !flex !items-center !justify-center"
+          (click)="search()"
+        >
+          <mat-icon class="!w-5 !h-5 text-[20px] mr-2">search</mat-icon>
+          <span class="text-sm font-medium pt-[1px]">Buscar</span>
+        </button>
+
+        <button
+          mat-stroked-button
+          class="h-full w-12 min-w-[48px] border-slate-300! text-slate-600! bg-white rounded-lg !p-0 !flex !items-center !justify-center hover:bg-slate-100 transition-colors"
+          (click)="openOptions()"
+          matTooltip="Filtros avanzados"
+        >
+          <mat-icon class="!m-0 !w-5 !h-5 text-[20px]">tune</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="overflow-auto relative w-full">
+      <table mat-table [dataSource]="dataSource" matSort class="w-full min-w-[1000px]">
+        <ng-container matColumnDef="date">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="pl-6 w-32">Fecha</th>
+          <td mat-cell *matCellDef="let row" class="pl-6 text-slate-600 text-sm whitespace-nowrap">
+            <div class="font-medium">{{ row.date.split(' ')[0] }}</div>
+            <div class="text-xs text-slate-400">{{ row.date.split(' ')[1] }}</div>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40">Tipo</th>
+          <td mat-cell *matCellDef="let row" class="text-slate-700 font-semibold text-xs uppercase">
+            {{ row.type }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="description">
+          <th mat-header-cell *matHeaderCellDef class="w-64">Descripción</th>
+          <td
+            mat-cell
+            *matCellDef="let row"
+            class="text-slate-500 text-sm max-w-[250px] truncate"
+            [matTooltip]="row.description"
+          >
+            {{ row.description }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="unit">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Unidad</th>
+          <td mat-cell *matCellDef="let row" class="text-slate-700 font-medium">{{ row.unit }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="plate">
+          <th mat-header-cell *matHeaderCellDef>Placa</th>
+          <td mat-cell *matCellDef="let row" class="text-slate-500">
+            <span
+              class="bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-xs font-mono font-bold text-slate-600"
+            >
+              {{ row.plate }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="owner">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Propietario</th>
+          <td mat-cell *matCellDef="let row" class="text-slate-600 text-sm">{{ row.owner }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Estado</th>
+          <td mat-cell *matCellDef="let row">
+            <span
+              [class]="
+                'px-3 py-1 rounded-full text-xs font-bold border ' + getStatusClass(row.status)
+              "
+            >
+              {{ row.status }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="!justify-center w-32">Acciones</th>
+          <td mat-cell *matCellDef="let row" class="!justify-center w-32">
+            <div class="flex justify-center gap-1">
+              <button mat-icon-button class="text-red-500 hover:bg-red-50" matTooltip="Ver Reporte">
+                <mat-icon class="scale-90">picture_as_pdf</mat-icon>
+              </button>
+              <button mat-icon-button class="text-blue-500 hover:bg-blue-50" matTooltip="Ver Fotos">
+                <mat-icon class="scale-90">image</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                class="text-slate-500 hover:bg-slate-100"
+                matTooltip="Detalles"
+              >
+                <mat-icon class="scale-90">description</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr
+          mat-header-row
+          *matHeaderRowDef="displayedColumns"
+          class="bg-slate-50 h-12 border-b border-slate-200 sticky top-0 z-10"
+        ></tr>
+
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          [class]="'h-14 border-b border-slate-100 last:border-0 ' + getRowClass(row.status)"
+        ></tr>
+      </table>
+    </div>
+
+    <mat-paginator
+      [pageSizeOptions]="pageSizeOptions()"
+      showFirstLastButtons
+      class="shrink-0 border-t border-slate-200 bg-white z-20"
+    >
+    </mat-paginator>
+  </div>
+</div>

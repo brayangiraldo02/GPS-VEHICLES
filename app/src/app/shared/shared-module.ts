@@ -10,6 +10,10 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatSortModule } from '@angular/material/sort';
 import { ReactiveFormsModule } from '@angular/forms';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 @NgModule({
   declarations: [],
@@ -24,7 +28,11 @@ import { ReactiveFormsModule } from '@angular/forms';
     MatTableModule,
     MatTabsModule,
     MatSortModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatTooltipModule,
+    MatPaginatorModule
   ],
   exports: [
     MatIconModule,
@@ -36,7 +44,11 @@ import { ReactiveFormsModule } from '@angular/forms';
     MatTableModule,
     MatTabsModule,
     MatSortModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatTooltipModule,
+    MatPaginatorModule
   ],
 })
 export class SharedModule {}
