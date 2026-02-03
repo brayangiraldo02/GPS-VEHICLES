@@ -9,46 +9,23 @@ import { Component } from '@angular/core';
 export class HomeComponent {
   menuOptions = [
     {
-      title: 'Tablas',
+      title: 'Tablas Informativas', // Le di un nombre más formal
+      description: 'Gestión de clientes, seriales, marcas y vehículos.', // Texto de soporte
       icon: 'table_view',
       route: '/tablas',
-      color: 'text-indigo-500 bg-indigo-50',
-      hoverColor: 'group-hover:text-indigo-600'
-    },
-    {
-      title: 'Inventarios',
-      icon: 'inventory_2',
-      route: '/inventarios',
-      color: 'text-orange-400 bg-orange-50',
-      hoverColor: 'group-hover:text-orange-500'
-    },
-    {
-      title: 'Facturación',
-      icon: 'receipt_long',
-      route: '/facturacion',
-      color: 'text-emerald-500 bg-emerald-50',
-      hoverColor: 'group-hover:text-emerald-600'
-    },
-    {
-      title: 'Cartera',
-      icon: 'account_balance_wallet',
-      route: '/cartera',
-      color: 'text-violet-500 bg-violet-50',
-      hoverColor: 'group-hover:text-violet-600'
+      // Usamos gradientes sutiles o colores sólidos más amplios
+      colorClass: 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white',
+      iconBg: 'bg-indigo-100 group-hover:bg-white/20',
+      borderColor: 'hover:border-indigo-200'
     },
     {
       title: 'Inspecciones',
+      description: 'Auditoría, revisión y control de estado de la flota.',
       icon: 'fact_check',
       route: '/inspecciones',
-      color: 'text-rose-500 bg-rose-50',
-      hoverColor: 'group-hover:text-rose-600'
-    },
-    {
-      title: 'Utilidades',
-      icon: 'build',
-      route: '/utilidades',
-      color: 'text-slate-500 bg-slate-100',
-      hoverColor: 'group-hover:text-slate-600'
+      colorClass: 'bg-rose-50 text-rose-600 group-hover:bg-rose-600 group-hover:text-white',
+      iconBg: 'bg-rose-100 group-hover:bg-white/20',
+      borderColor: 'hover:border-rose-200'
     },
   ];
 }
