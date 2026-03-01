@@ -1,7 +1,6 @@
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from routes.users import users_router
-from routes.clients import clients_router
 from security.deps import get_current_user
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -20,7 +19,6 @@ app.add_middleware(
 )
 
 app.include_router(users_router, prefix="/users")
-app.include_router(clients_router, prefix="/clients", dependencies=[Depends(get_current_user)])
 
 @app.get("/", dependencies=[Depends(get_current_user)])
 def main():
