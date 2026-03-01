@@ -4,7 +4,7 @@ from config.dbconnection import Base
 class Vehiculos(Base):
   __tablename__ = 'VEHICULOS'
 
-  ID = Column(CHAR(4), nullable=False)
+  ID = Column(CHAR(4), nullable=False, primary_key=True)
   PLACA = Column(CHAR(40))
   MODELO = Column(CHAR(20))
   ID_MARCA = Column(CHAR(2))

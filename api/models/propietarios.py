@@ -4,7 +4,7 @@ from config.dbconnection import Base
 class Propietarios(Base):
   __tablename__ = 'PROPIETARIOS'
 
-  ID = Column(CHAR(4), nullable=False)
+  ID = Column(CHAR(4), nullable=False, primary_key=True)
   NOMBRE = Column(CHAR(50))
   RUC = Column(CHAR(30))
   ID_CIUDAD = Column(CHAR(5))
