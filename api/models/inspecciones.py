@@ -1,0 +1,36 @@
+from sqlalchemy import Column, Date, Time, DateTime, CHAR, Integer, Text, VARCHAR
+from config.dbconnection import Base
+
+class Inspecciones(Base):
+  __tablename__ = 'INSPECCIONES'
+
+  EMPRESA = Column(CHAR(2), nullable=False, default='0')
+  ID = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
+  FECHA = Column(Date)
+  HORA = Column(Time)
+  ID_VEHICULO = Column(CHAR(8))
+  PLACA = Column(CHAR(8))
+  PROPIETARIO = Column(CHAR(4))
+  NOMPROPI = Column(CHAR(50))
+  TIPO_INSPEC = Column(CHAR(2))
+  NOMINSPEC = Column(CHAR(30))
+  KILOMETRAJE = Column(Integer)
+  GPS_SERIAL = Column(CHAR(25))
+  CEL_NUMERO = Column(CHAR(12))
+  CEL_SERIAL = Column(CHAR(25))
+  DESCRIPCION = Column(Text)
+  OBSERVA = Column(Text)
+  FOTO01 = Column(VARCHAR(200))
+  FOTO02 = Column(VARCHAR(200))
+  FOTO03 = Column(VARCHAR(200))
+  FOTO04 = Column(VARCHAR(200))
+  FOTO05 = Column(VARCHAR(200))
+  FOTO06 = Column(VARCHAR(200))
+  FOTO07 = Column(VARCHAR(200))
+  FOTO08 = Column(VARCHAR(200))
+  FIRMA = Column(VARCHAR(200))
+  NRO_FOTOS = Column(Integer)
+  USUARIO = Column(CHAR(12))
+  NOMUSUARIO = Column(CHAR(40))
+  ESTADO = Column(VARCHAR(10))
+  FEC_CREADO = Column(DateTime)

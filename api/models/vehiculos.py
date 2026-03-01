@@ -1,0 +1,35 @@
+from sqlalchemy import Column, Date, Time, DateTime, CHAR, Integer, Text, VARCHAR, DECIMAL
+from config.dbconnection import Base
+
+class Vehiculos(Base):
+  __tablename__ = 'VEHICULOS'
+
+  ID = Column(CHAR(4), nullable=False)
+  PLACA = Column(CHAR(40))
+  MODELO = Column(CHAR(20))
+  ID_MARCA = Column(CHAR(2))
+  NOMMARCA = Column(CHAR(20))
+  ID_COLOR = Column(CHAR(2))
+  NOMCOLOR = Column(CHAR(20))
+  ID_TIPOVEH = Column(CHAR(2))
+  NOMTIPOVEH = Column(CHAR(30))
+  ID_PROPIE = Column(CHAR(4))
+  NOMPROPIE = Column(CHAR(50))
+  ID_ESTADO = Column(CHAR(2))
+  NOMESTADO = Column(CHAR(30))
+  FEC_ESTADO = Column(Date)
+  SERVICIO = Column(CHAR(30))
+  CUO_ADMON = Column(DECIMAL(10, 2))
+  IVA = Column(Integer)
+  PREND_APAG = Column(Integer)
+  FEC_PREAPA = Column(Date)
+  GPS_SERIAL = Column(CHAR(25))
+  CEL_SERIAL = Column(CHAR(25))
+  CEL_NUMERO = Column(CHAR(12))
+  OBSERVA = Column(Text)
+  COMENTARIO = Column(Text)
+  FOTO = Column(VARCHAR(200))
+  USU_CREADO = Column(CHAR(12))
+  FEC_CREADO = Column(DateTime)
+  USU_MODIFI = Column(CHAR(12))
+  FEC_MODIFI = Column(DateTime)
