@@ -34,7 +34,7 @@ async def process_login(data: LoginRequest, db: Session):
         'status_code': 200
       }
     
-    user = db.query(Usuarios).filter(Usuarios.CODIGO == data.username).first()
+    user = db.query(Usuarios).filter(Usuarios.ID == data.username).first()
     
     if not user:
       return {'error': 'Usuario no encontrado', 'status_code':404}
@@ -43,12 +43,12 @@ async def process_login(data: LoginRequest, db: Session):
     if user.ESTADO == 0:
       return {'error': 'Usuario inactivo', 'status_code':403}
 
-    user_data_payload = {"codigo": user.CODIGO} # Datos mínimos para el token
+    user_data_payload = {"codigo": user.ID} # Datos mínimos para el token
 
     access_token = create_access_token(user_data_payload)
     refresh_token = create_refresh_token(user_data_payload)
     
-    user_data = {"id": user.CODIGO, "nombre": user.NOMBRE}
+    user_data = {"id": user.ID, "nombre": user.NOMBRE}
 
     return {
       'access_token': access_token,
