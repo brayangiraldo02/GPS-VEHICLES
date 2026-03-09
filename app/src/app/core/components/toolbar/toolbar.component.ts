@@ -9,7 +9,7 @@ import { AuthService } from '../../services/auth.service';
 })
 export class ToolbarComponent {
   logoURL =
-    'https://media.licdn.com/dms/image/C4E0BAQFN9RPjAJAIdA/company-logo_200_200/0/1631324563752?e=2147483647&v=beta&t=wArf89ExUKjZh0xk-BOPfnLhlvSw5F-fHyf4wC8uK4Y';
+    'https://res.cloudinary.com/dhry2v8qz/image/upload/v1747705038/AlfaSoft/company-logo/AlfaSoft.png';
 
   private authService = inject(AuthService);
 
