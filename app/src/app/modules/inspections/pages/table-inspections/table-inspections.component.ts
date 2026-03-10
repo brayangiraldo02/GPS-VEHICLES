@@ -1,9 +1,12 @@
-import { Component, effect, HostListener, signal, viewChild } from '@angular/core';
+import { Component, effect, HostListener, signal, viewChild, inject } from '@angular/core';
 import { INSPECTIONS_MOCK } from '../../consts/inspections.mock'; // Ajusta tus rutas si es necesario
 import { Inspection } from '../../interfaces/inspections.interface'; // Ajusta tus rutas si es necesario
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
+import { MatDialog } from '@angular/material/dialog';
+import { DialogNewInspectionComponent } from '../../components/dialog-new-inspection/dialog-new-inspection.component';
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 
 @Component({
   selector: 'app-table-inspections',
@@ -14,6 +17,8 @@ import { MatTableDataSource } from '@angular/material/table';
 export class TableInspectionsComponent {
   readonly paginator = viewChild(MatPaginator);
   readonly sort = viewChild(MatSort);
+  readonly dialog = inject(MatDialog);
+  readonly breakpointObserver = inject(BreakpointObserver);
 
   pageSizeOptions = signal<number[]>([10, 20, 50]);
 
@@ -31,7 +36,7 @@ export class TableInspectionsComponent {
   dataSource = new MatTableDataSource<Inspection>(INSPECTIONS_MOCK);
 
   readonly ROW_HEIGHT = 56;
-  readonly HEADER_HEIGHT = 48; 
+  readonly HEADER_HEIGHT = 48;
   readonly FIXED_SPACE_VERTICAL = 465;
 
   constructor() {
@@ -79,22 +84,44 @@ export class TableInspectionsComponent {
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'FINALIZADO': return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      case 'PENDIENTE': return 'bg-amber-100 text-amber-700 border-amber-200';
-      case 'SUSPENDIDO': return 'bg-rose-100 text-rose-700 border-rose-200';
-      default: return 'bg-slate-100 text-slate-600 border-slate-200';
+      case 'FINALIZADO':
+        return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case 'PENDIENTE':
+        return 'bg-amber-100 text-amber-700 border-amber-200';
+      case 'SUSPENDIDO':
+        return 'bg-rose-100 text-rose-700 border-rose-200';
+      default:
+        return 'bg-slate-100 text-slate-600 border-slate-200';
     }
   }
 
   getRowClass(status: string): string {
     switch (status) {
-      case 'PENDIENTE': return 'bg-amber-50/60 hover:bg-amber-100/50';
-      case 'SUSPENDIDO': return 'bg-rose-50/60 hover:bg-rose-100/50';
-      default: return 'hover:bg-slate-50 transition-colors';
+      case 'PENDIENTE':
+        return 'bg-amber-50/60 hover:bg-amber-100/50';
+      case 'SUSPENDIDO':
+        return 'bg-rose-50/60 hover:bg-rose-100/50';
+      default:
+        return 'hover:bg-slate-50 transition-colors';
     }
   }
 
-  search() { console.log('Buscando...'); }
-  openOptions() { console.log('Opciones...'); }
-  newInspection() { console.log('Nueva Inspección...'); }
+  search() {
+    console.log('Buscando...');
+  }
+  openOptions() {
+    console.log('Opciones...');
+  }
+
+  newInspection() {
+    const isXSmall = this.breakpointObserver.isMatched(Breakpoints.XSmall);
+    const isSmall = this.breakpointObserver.isMatched(Breakpoints.Small);
+    const dialogWidth = isXSmall ? '100%' : isSmall ? '80%' : '60%';
+
+    this.dialog.open(DialogNewInspectionComponent, {
+      width: dialogWidth,
+      panelClass: 'custom-dialog-container',
+      disableClose: true,
+    });
+  }
 }

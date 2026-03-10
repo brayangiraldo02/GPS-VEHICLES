@@ -51,9 +51,9 @@
           class="w-full compact-form-field"
         >
           <mat-label>Rango de Fechas</mat-label>
-          <mat-date-range-input [rangePicker]="picker">
-            <input matStartDate placeholder="Inicio" />
-            <input matEndDate placeholder="Fin" />
+          <mat-date-range-input [rangePicker]="picker" (click)="picker.open()">
+            <input matStartDate placeholder="Inicio" readonly />
+            <input matEndDate placeholder="Fin" readonly />
           </mat-date-range-input>
           <mat-datepicker-toggle
             matIconSuffix
@@ -79,9 +79,9 @@
           mat-stroked-button
           class="h-full w-12 min-w-[48px] border-slate-300! text-slate-600! bg-white rounded-lg !p-0 !flex !items-center !justify-center hover:bg-slate-100 transition-colors"
           (click)="openOptions()"
-          matTooltip="Filtros avanzados"
+          matTooltip="Descargar reporte general"
         >
-          <mat-icon class="!m-0 !w-5 !h-5 text-[20px]">tune</mat-icon>
+          <mat-icon class="!m-0 !w-5 !h-5 text-[20px]">picture_as_pdf</mat-icon>
         </button>
       </div>
     </div>
