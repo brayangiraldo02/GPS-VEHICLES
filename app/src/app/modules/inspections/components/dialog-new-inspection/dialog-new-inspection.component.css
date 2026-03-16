@@ -1,4 +1,4 @@
-:host ::ng-deep .compact-form-field .mat-mdc-form-field-flex {
+:host ::ng-deep .compact-form-field:not(.is-textarea) .mat-mdc-form-field-flex {
   height: 48px !important;
   align-items: center !important;
 }

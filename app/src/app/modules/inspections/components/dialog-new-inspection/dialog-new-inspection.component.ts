@@ -19,6 +19,9 @@ export class DialogNewInspectionComponent {
   // Vehículo seleccionado (null si no hay selección)
   selectedVehicle = signal<Vehicle | null>(null);
 
+  // CONTROL DEL WIZARD (Pasos)
+  currentStep = signal<number>(1);
+
   // NUEVAS VARIABLES PARA EL TIPO DE INSPECCIÓN
   selectedInspectionType = signal<string | null>(null);
   inspectionTypes = [
@@ -91,6 +94,7 @@ export class DialogNewInspectionComponent {
   changeVehicle() {
     this.selectedVehicle.set(null);
     this.selectedInspectionType.set(null); // Importante: Limpiamos el tipo si cambia de carro
+    this.currentStep.set(1);
   }
 
   closeDialog() {
@@ -102,7 +106,17 @@ export class DialogNewInspectionComponent {
     if (this.selectedVehicle() && this.selectedInspectionType()) {
       console.log('Procediendo con vehículo:', this.selectedVehicle()?.plate);
       console.log('Tipo de Inspección:', this.selectedInspectionType());
-      // Aquí iría tu lógica para avanzar
+      this.currentStep.set(2);
     }
+  }
+
+  prevStep() {
+    this.currentStep.set(1);
+  }
+
+  finishInspection() {
+    console.log('Guardando inspección...');
+    // Lógica final para enviar al backend
+    this.dialogRef.close(true);
   }
 }

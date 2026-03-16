@@ -1,13 +1,9 @@
-<div class="flex flex-col h-full w-full max-w-full overflow-hidden">
-  <div class="flex items-center justify-between border-b border-slate-100 p-6 pb-4 shrink-0">
+<div class="flex flex-col h-[85vh] md:h-[750px] w-full md:w-[1050px] max-w-full overflow-hidden">
+  <div class="flex items-center justify-between border-b border-slate-100 p-6 pb-4 shrink-0 bg-white z-20">
     <div>
       <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Nueva Inspección</h2>
       <p class="text-slate-500 text-sm">
-        {{
-          !selectedVehicle()
-            ? 'Paso 1: Identificación del Vehículo'
-            : 'Paso 2: Configuración de Inspección'
-        }}
+        {{ currentStep() === 1 ? 'Paso 1: Identificación del Vehículo' : 'Paso 2: Datos de la Inspección' }}
       </p>
     </div>
     <button
@@ -19,212 +15,289 @@
     </button>
   </div>
 
-  <mat-dialog-content class="!p-0 flex-1 overflow-hidden flex flex-col bg-slate-50/50">
-    @if (!selectedVehicle()) {
-      <div class="px-6 pb-6 space-y-5 flex flex-col h-full">
-        <mat-form-field
-          appearance="fill"
-          subscriptSizing="dynamic"
-          class="w-full compact-form-field shrink-0 z-10"
-        >
-          <mat-label>Buscar vehículo</mat-label>
-          <input
-            matInput
-            #searchInput
-            [value]="searchQuery()"
-            (input)="onSearch($event)"
-            placeholder="Ej. Placa EL4062, Cupo SH24 o Cliente..."
-          />
-          @if (searchQuery()) {
-            <button
-              matSuffix
-              mat-icon-button
-              (click)="clearSearch(); searchInput.value = ''"
-              class="!w-8 !h-8 !p-0 text-slate-400 hover:text-slate-600 transition-colors"
-            >
-              <mat-icon class="scale-75">close</mat-icon>
-            </button>
-          }
-          <mat-icon matSuffix class="text-slate-400 scale-90">search</mat-icon>
-        </mat-form-field>
-
-        <div class="flex-1 overflow-y-auto pr-1 space-y-3">
-          @if (filteredVehicles().length > 0) {
-            @for (vehicle of filteredVehicles(); track vehicle.id) {
-              <div
-                (click)="selectVehicle(vehicle)"
-                class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-5 cursor-pointer transition-all duration-300 hover:border-primary-100 hover:shadow-md group"
+  <mat-dialog-content class="!p-0 flex-1 overflow-hidden flex flex-col bg-slate-50/50 relative !max-h-none">
+    @if (currentStep() === 1) {
+      @if (!selectedVehicle()) {
+        <div class="px-6 pb-6 pt-6 space-y-5 flex flex-col h-full">
+          <mat-form-field
+            appearance="fill"
+            subscriptSizing="dynamic"
+            class="w-full compact-form-field shrink-0 z-10"
+          >
+            <mat-label>Buscar vehículo</mat-label>
+            <input
+              matInput
+              #searchInput
+              [value]="searchQuery()"
+              (input)="onSearch($event)"
+              placeholder="Ej. Placa EL4062, Cupo SH24 o Cliente..."
+            />
+            @if (searchQuery()) {
+              <button
+                matSuffix
+                mat-icon-button
+                (click)="clearSearch(); searchInput.value = ''"
+                class="!w-8 !h-8 !p-0 text-slate-400 hover:text-slate-600 transition-colors"
               >
+                <mat-icon class="scale-75">close</mat-icon>
+              </button>
+            }
+            <mat-icon matSuffix class="text-slate-400 scale-90">search</mat-icon>
+          </mat-form-field>
+
+          <div class="flex-1 overflow-y-auto pr-1 space-y-3">
+            @if (filteredVehicles().length > 0) {
+              @for (vehicle of filteredVehicles(); track vehicle.id) {
                 <div
-                  class="vehicle-icon-box bg-primary-50 text-primary-600 w-16 h-16 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-primary-600 group-hover:scale-110 group-hover:rounded-2xl group-hover:shadow-md group-hover:shadow-primary-500/30"
+                  (click)="selectVehicle(vehicle)"
+                  class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-5 cursor-pointer transition-all duration-300 hover:border-primary-100 hover:shadow-md group"
                 >
-                  <mat-icon class="!w-10 !h-10 !leading-10 text-[40px] text-center"
-                    >local_taxi</mat-icon
+                  <div
+                    class="vehicle-icon-box bg-primary-50 text-primary-600 w-16 h-16 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300 group-hover:bg-primary-600 group-hover:scale-110 group-hover:rounded-2xl group-hover:shadow-md group-hover:shadow-primary-500/30"
+                  >
+                    <mat-icon class="!w-10 !h-10 !leading-10 text-[40px] text-center"
+                      >local_taxi</mat-icon
+                    >
+                  </div>
+
+                  <div class="flex-1 grid grid-cols-2 gap-x-4 gap-y-1">
+                    <div class="col-span-2">
+                      <span
+                        class="text-lg font-bold text-slate-800 group-hover:text-primary-700 transition-colors"
+                      >
+                        {{ vehicle.plate }}
+                      </span>
+                      <span
+                        class="text-sm font-medium text-slate-400 ml-2 transition-colors group-hover:text-primary-400"
+                      >
+                        (Unidad: {{ vehicle.unitId }})
+                      </span>
+                    </div>
+                    <div
+                      class="text-sm text-slate-500 flex items-center gap-1.5 transition-colors group-hover:text-slate-700"
+                    >
+                      <mat-icon
+                        class="text-slate-400 scale-75 transition-colors group-hover:text-primary-500"
+                        >person</mat-icon
+                      >
+                      {{ vehicle.owner }}
+                    </div>
+                    <div
+                      class="text-sm text-slate-500 flex items-center gap-1.5 transition-colors group-hover:text-slate-700"
+                    >
+                      <mat-icon
+                        class="text-slate-400 scale-75 transition-colors group-hover:text-primary-500"
+                        >confirmation_number</mat-icon
+                      >
+                      Cupo:
+                      {{ vehicle.quota }}
+                    </div>
+                  </div>
+
+                  <mat-icon
+                    class="text-slate-300 group-hover:text-primary-500 group-hover:translate-x-1 transition-all"
+                    >chevron_right</mat-icon
                   >
                 </div>
+              }
 
-                <div class="flex-1 grid grid-cols-2 gap-x-4 gap-y-1">
-                  <div class="col-span-2">
-                    <span
-                      class="text-lg font-bold text-slate-800 group-hover:text-primary-700 transition-colors"
-                    >
-                      {{ vehicle.plate }}
-                    </span>
-                    <span
-                      class="text-sm font-medium text-slate-400 ml-2 transition-colors group-hover:text-primary-400"
-                    >
-                      (Unidad: {{ vehicle.unitId }})
-                    </span>
-                  </div>
-                  <div
-                    class="text-sm text-slate-500 flex items-center gap-1.5 transition-colors group-hover:text-slate-700"
-                  >
-                    <mat-icon
-                      class="text-slate-400 scale-75 transition-colors group-hover:text-primary-500"
-                      >person</mat-icon
-                    >
-                    {{ vehicle.owner }}
-                  </div>
-                  <div
-                    class="text-sm text-slate-500 flex items-center gap-1.5 transition-colors group-hover:text-slate-700"
-                  >
-                    <mat-icon
-                      class="text-slate-400 scale-75 transition-colors group-hover:text-primary-500"
-                      >confirmation_number</mat-icon
-                    >
-                    Cupo:
-                    {{ vehicle.quota }}
-                  </div>
-                </div>
-
-                <mat-icon
-                  class="text-slate-300 group-hover:text-primary-500 group-hover:translate-x-1 transition-all"
-                  >chevron_right</mat-icon
-                >
+              <div class="text-center pt-2">
+                <span class="text-xs text-slate-400">
+                  {{
+                    searchQuery()
+                      ? 'Mostrando resultados destacados.'
+                      : 'Mostrando vehículos recientes.'
+                  }}
+                  Usa el buscador para encontrar un vehículo específico.
+                </span>
+              </div>
+            } @else {
+              <div
+                class="text-center py-12 bg-white rounded-2xl border border-slate-100 border-dashed"
+              >
+                <mat-icon class="!w-16 !h-10 text-[64px] text-slate-300">search_off</mat-icon>
+                <h3 class="text-lg font-bold text-slate-700 mb-1">No hay resultados</h3>
+                <p class="text-slate-500 text-sm">
+                  No se encontraron vehículos que coincidan con "{{ searchQuery() }}"
+                </p>
               </div>
             }
-
-            <div class="text-center pt-2">
-              <span class="text-xs text-slate-400">
-                {{
-                  searchQuery()
-                    ? 'Mostrando resultados destacados.'
-                    : 'Mostrando vehículos recientes.'
-                }}
-                Usa el buscador para encontrar un vehículo específico.
-              </span>
-            </div>
-          } @else {
-            <div
-              class="text-center py-12 bg-white rounded-2xl border border-slate-100 border-dashed"
-            >
-              <mat-icon class="!w-16 !h-10 text-[64px] text-slate-300">search_off</mat-icon>
-              <h3 class="text-lg font-bold text-slate-700 mb-1">No hay resultados</h3>
-              <p class="text-slate-500 text-sm">
-                No se encontraron vehículos que coincidan con "{{ searchQuery() }}"
-              </p>
-            </div>
-          }
-        </div>
-      </div>
-    } @else {
-      <div class="px-6 pb-6 flex flex-col h-full gap-5">
-        <div
-          class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm flex items-center justify-between shrink-0"
-        >
-          <div class="flex items-center gap-4">
-            <mat-icon class="!w-14 !h-14 !leading-[56px] text-[56px] text-center text-emerald-500"
-              >check_circle</mat-icon
-            >
-            <div>
-              <h4 class="text-xl font-bold text-slate-800">Vehículo Confirmado</h4>
-              <p class="text-slate-500 text-sm">
-                Placa:
-                <span class="font-bold text-slate-700">{{ selectedVehicle()?.plate }}</span> |
-                Unidad: {{ selectedVehicle()?.unitId }}
-              </p>
-            </div>
           </div>
-          <button
-            mat-stroked-button
-            color="primary"
-            class="rounded-lg h-9 border-primary-200!"
-            (click)="changeVehicle()"
+        </div>
+      } @else {
+        <div class="px-6 pb-6 pt-6 flex flex-col h-full gap-5">
+          <div
+            class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm flex items-center justify-between shrink-0"
           >
-            <mat-icon class="scale-90 mr-1">change_circle</mat-icon> Cambiar
-          </button>
-        </div>
-
-        <div
-          class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm shrink-0 flex flex-col md:flex-row md:items-center gap-4"
-        >
-          <div class="flex-1">
-            <h4 class="text-base font-bold text-slate-800">Tipo de Inspección</h4>
-            <p class="text-slate-500 text-sm">Requisito obligatorio para comenzar la revisión</p>
-          </div>
-          <div class="w-full md:w-80 shrink-0">
-            <mat-form-field
-              appearance="fill"
-              subscriptSizing="dynamic"
-              class="w-full compact-form-field"
-            >
-              <mat-label>Selecciona un tipo *</mat-label>
-              <mat-select
-                [value]="selectedInspectionType()"
-                (selectionChange)="selectedInspectionType.set($event.value)"
+            <div class="flex items-center gap-4">
+              <mat-icon class="!w-14 !h-14 !leading-[56px] text-[56px] text-center text-emerald-500"
+                >check_circle</mat-icon
               >
-                @for (type of inspectionTypes; track type) {
-                  <mat-option [value]="type">{{ type }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-          </div>
-        </div>
-
-        <div
-          class="flex-1 bg-white rounded-2xl border border-slate-100 p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5 shadow-sm overflow-y-auto pr-2"
-        >
-          @for (detail of selectedVehicleDetails(); track detail.label) {
-            <div class="flex items-start gap-3.5">
-              <div
-                class="bg-slate-100 text-slate-500 w-10 h-10 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
-              >
-                <mat-icon class="scale-90">{{ detail.icon }}</mat-icon>
-              </div>
-              <div class="flex flex-col">
-                <span class="text-xs font-semibold text-slate-400 tracking-wide uppercase">{{
-                  detail.label
-                }}</span>
-                <span class="text-base font-semibold text-slate-800 leading-snug">{{
-                  detail.value
-                }}</span>
+              <div>
+                <h4 class="text-xl font-bold text-slate-800">Vehículo Confirmado</h4>
+                <p class="text-slate-500 text-sm">
+                  Placa:
+                  <span class="font-bold text-slate-700">{{ selectedVehicle()?.plate }}</span> |
+                  Unidad: {{ selectedVehicle()?.unitId }}
+                </p>
               </div>
             </div>
-          }
+            <button
+              mat-stroked-button
+              color="primary"
+              class="rounded-lg h-9 border-primary-200!"
+              (click)="changeVehicle()"
+            >
+              <mat-icon class="scale-90 mr-1">change_circle</mat-icon> Cambiar
+            </button>
+          </div>
+
+          <div
+            class="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm shrink-0 flex flex-col md:flex-row md:items-center gap-4"
+          >
+            <div class="flex-1">
+              <h4 class="text-base font-bold text-slate-800">Tipo de Inspección</h4>
+              <p class="text-slate-500 text-sm">Requisito obligatorio para comenzar la revisión</p>
+            </div>
+            <div class="w-full md:w-80 shrink-0">
+              <mat-form-field
+                appearance="fill"
+                subscriptSizing="dynamic"
+                class="w-full compact-form-field"
+              >
+                <mat-label>Selecciona un tipo *</mat-label>
+                <mat-select
+                  [value]="selectedInspectionType()"
+                  (selectionChange)="selectedInspectionType.set($event.value)"
+                >
+                  @for (type of inspectionTypes; track type) {
+                    <mat-option [value]="type">{{ type }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </div>
+
+          <div
+            class="flex-1 bg-white rounded-2xl border border-slate-100 p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5 shadow-sm overflow-y-auto pr-2"
+          >
+            @for (detail of selectedVehicleDetails(); track detail.label) {
+              <div class="flex items-start gap-3.5">
+                <div
+                  class="bg-slate-100 text-slate-500 w-10 h-10 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                >
+                  <mat-icon class="scale-90">{{ detail.icon }}</mat-icon>
+                </div>
+                <div class="flex flex-col">
+                  <span class="text-xs font-semibold text-slate-400 tracking-wide uppercase">{{
+                    detail.label
+                  }}</span>
+                  <span class="text-base font-semibold text-slate-800 leading-snug">{{
+                    detail.value
+                  }}</span>
+                </div>
+              </div>
+            }
+          </div>
         </div>
+      }
+    } @else if (currentStep() === 2) {
+      <div class="flex flex-col md:flex-row h-full p-6 gap-6 overflow-y-auto md:overflow-hidden">
+        
+        <div class="w-full md:w-1/3 flex flex-col bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden shrink-0 md:shrink md:h-full h-auto">
+          <div class="bg-slate-50/80 p-5 border-b border-slate-100 shrink-0">
+            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+              <mat-icon class="text-primary-500">directions_car</mat-icon> Resumen del Vehículo
+            </h3>
+          </div>
+          
+          <div class="p-5 md:overflow-y-auto overflow-visible flex-1 space-y-4 md:pr-3">
+            <div class="bg-primary-50 border border-primary-100 rounded-xl p-4">
+              <span class="block text-xs font-bold text-primary-600 uppercase tracking-wide mb-1">Tipo de Inspección</span>
+              <span class="block text-sm font-semibold text-primary-900">{{ selectedInspectionType() }}</span>
+            </div>
+
+            @for (detail of selectedVehicleDetails(); track detail.label) {
+              <div class="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{{ detail.label }}</span>
+                <span class="block text-sm font-medium text-slate-700">{{ detail.value }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="w-full md:w-2/3 flex flex-col bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden shrink-0 md:shrink md:h-full h-auto">
+          <div class="bg-white p-5 border-b border-slate-100 shrink-0">
+            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+              <mat-icon class="text-slate-400">edit_document</mat-icon> Complete los datos
+            </h3>
+          </div>
+
+          <div class="p-6 md:overflow-y-auto overflow-visible flex-1">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <mat-form-field appearance="fill" subscriptSizing="dynamic" class="w-full compact-form-field">
+                <mat-label>Kilometraje</mat-label>
+                <input matInput type="number" placeholder="Ej. 90827">
+                <span matTextSuffix class="text-slate-400 text-sm mr-2 font-medium">km</span>
+                <mat-icon matSuffix class="text-slate-400 scale-90">speed</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="fill" subscriptSizing="dynamic" class="w-full compact-form-field">
+                <mat-label>Serial GPS</mat-label>
+                <input matInput placeholder="Ingrese serial GPS">
+                <mat-icon matSuffix class="text-slate-400 scale-90">satellite_alt</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="fill" subscriptSizing="dynamic" class="w-full compact-form-field">
+                <mat-label>Número celular</mat-label>
+                <input matInput type="tel" placeholder="Ej. 310 123 4567">
+                <mat-icon matSuffix class="text-slate-400 scale-90">phone_iphone</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="fill" subscriptSizing="dynamic" class="w-full compact-form-field">
+                <mat-label>Serial Celular</mat-label>
+                <input matInput placeholder="Ingrese serial del equipo">
+                <mat-icon matSuffix class="text-slate-400 scale-90">sim_card</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field appearance="fill" subscriptSizing="dynamic" class="w-full sm:col-span-2 is-textarea">
+                <mat-label>Descripción *</mat-label>
+                <textarea matInput rows="3" placeholder="Detalle el motivo de la inspección..."></textarea>
+              </mat-form-field>
+
+              <mat-form-field appearance="fill" subscriptSizing="dynamic" class="w-full sm:col-span-2 is-textarea">
+                <mat-label>Observaciones</mat-label>
+                <textarea matInput rows="3" placeholder="Notas adicionales (opcional)..."></textarea>
+              </mat-form-field>
+            </div>
+          </div>
+        </div>
+
       </div>
     }
   </mat-dialog-content>
 
-  <mat-dialog-actions
-    class="!p-6 border-t border-slate-100 bg-white flex justify-end gap-3 shrink-0"
-  >
-    <button
-      mat-stroked-button
-      mat-dialog-close
-      class="rounded-lg h-10 border-slate-300! text-slate-600!"
-    >
+  <mat-dialog-actions class="!p-6 !m-0 border-t border-slate-100 bg-white flex justify-end gap-3 shrink-0">
+    @if (currentStep() === 2) {
+      <button mat-button class="text-slate-600 rounded-lg h-10 px-4" (click)="prevStep()">
+        <mat-icon class="mr-1 scale-90">arrow_back</mat-icon> Volver
+      </button>
+    }
+
+    <button mat-stroked-button mat-dialog-close class="rounded-lg h-10 px-6 border-slate-300! text-slate-600!">
       Cancelar
     </button>
-
-    <button
-      mat-flat-button
-      color="primary"
-      class="rounded-lg h-10 px-6"
-      [disabled]="!selectedVehicle() || !selectedInspectionType()"
-      (click)="nextStep()"
-    >
-      Comenzar Inspección <mat-icon class="ml-1.5 scale-90">chevron_right</mat-icon>
-    </button>
+    
+    @if (currentStep() === 1) {
+      <button mat-flat-button color="primary" class="rounded-lg h-10 px-6" 
+              [disabled]="!selectedVehicle() || !selectedInspectionType()" 
+              (click)="nextStep()">
+        Siguiente <mat-icon class="ml-1.5 scale-90">arrow_forward</mat-icon>
+      </button>
+    } @else {
+      <button mat-flat-button color="primary" class="rounded-lg h-10 px-6" (click)="finishInspection()">
+        Finalizar y Guardar <mat-icon class="ml-1.5 scale-90">save</mat-icon>
+      </button>
+    }
   </mat-dialog-actions>
 </div>
