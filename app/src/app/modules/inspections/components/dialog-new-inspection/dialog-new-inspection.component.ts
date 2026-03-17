@@ -115,8 +115,19 @@ export class DialogNewInspectionComponent {
   }
 
   finishInspection() {
-    console.log('Guardando inspección...');
-    // Lógica final para enviar al backend
-    this.dialogRef.close(true);
+    // Cambiamos al Paso 3 (Pantalla de Carga)
+    this.currentStep.set(3);
+
+    // Simulamos la petición al backend (espera de 2 segundos)
+    setTimeout(() => {
+      // Avanzamos al Paso 4 (Cámara)
+      this.currentStep.set(4);
+    }, 2000);
+  }
+
+  // Se llama cuando la cámara termina de subir todo
+  completeWizard(photos: string[]) {
+    console.log('Inspección terminada con fotos:', photos);
+    this.dialogRef.close(true); // Cerramos el modal grande definitivamente
   }
 }

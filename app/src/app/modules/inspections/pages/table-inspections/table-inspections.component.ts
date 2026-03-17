@@ -116,10 +116,11 @@ export class TableInspectionsComponent {
   newInspection() {
     const isXSmall = this.breakpointObserver.isMatched(Breakpoints.XSmall);
     const isSmall = this.breakpointObserver.isMatched(Breakpoints.Small);
-    const dialogWidth = isXSmall ? '100%' : isSmall ? '80%' : '60%';
+    const dialogWidth = isXSmall ? '100vw' : isSmall ? '95vw' : '1050px';
 
     this.dialog.open(DialogNewInspectionComponent, {
       width: dialogWidth,
+      maxWidth: isXSmall ? '100vw' : '95vw',
       panelClass: 'custom-dialog-container',
       disableClose: true,
     });

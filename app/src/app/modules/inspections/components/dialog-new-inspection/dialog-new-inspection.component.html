@@ -1,9 +1,12 @@
-<div class="flex flex-col h-[85vh] md:h-[750px] w-full md:w-[1050px] max-w-full overflow-hidden">
+<div class="flex flex-col h-[92vh] md:h-[750px] w-full overflow-hidden">
   <div class="flex items-center justify-between border-b border-slate-100 p-6 pb-4 shrink-0 bg-white z-20">
     <div>
       <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Nueva Inspección</h2>
       <p class="text-slate-500 text-sm">
-        {{ currentStep() === 1 ? 'Paso 1: Identificación del Vehículo' : 'Paso 2: Datos de la Inspección' }}
+        @if (currentStep() === 1) { Paso 1: Identificación del Vehículo }
+        @else if (currentStep() === 2) { Paso 2: Datos de la Inspección }
+        @else if (currentStep() === 3) { Paso 3: Guardando Datos }
+        @else if (currentStep() === 4) { Paso 4: Evidencia Fotográfica }
       </p>
     </div>
     <button
@@ -15,10 +18,10 @@
     </button>
   </div>
 
-  <mat-dialog-content class="!p-0 flex-1 overflow-hidden flex flex-col bg-slate-50/50 relative !max-h-none">
+  <mat-dialog-content class="!p-0 flex-1 overflow-hidden flex flex-col bg-slate-50/50 relative !max-h-none w-full">
     @if (currentStep() === 1) {
       @if (!selectedVehicle()) {
-        <div class="px-6 pb-6 pt-6 space-y-5 flex flex-col h-full">
+        <div class="px-6 pb-6 pt-6 space-y-5 flex flex-col h-full w-full">
           <mat-form-field
             appearance="fill"
             subscriptSizing="dynamic"
@@ -60,38 +63,23 @@
                     >
                   </div>
 
-                  <div class="flex-1 grid grid-cols-2 gap-x-4 gap-y-1">
-                    <div class="col-span-2">
-                      <span
-                        class="text-lg font-bold text-slate-800 group-hover:text-primary-700 transition-colors"
-                      >
+                  <div class="flex-1 flex flex-col gap-1.5 md:gap-1 overflow-hidden py-0.5">
+                    <div class="flex items-baseline flex-wrap gap-x-2">
+                      <span class="text-lg font-bold text-slate-800 group-hover:text-primary-700 transition-colors truncate">
                         {{ vehicle.plate }}
                       </span>
-                      <span
-                        class="text-sm font-medium text-slate-400 ml-2 transition-colors group-hover:text-primary-400"
-                      >
+                      <span class="text-sm font-medium text-slate-400 transition-colors group-hover:text-primary-400 whitespace-nowrap">
                         (Unidad: {{ vehicle.unitId }})
                       </span>
                     </div>
-                    <div
-                      class="text-sm text-slate-500 flex items-center gap-1.5 transition-colors group-hover:text-slate-700"
-                    >
-                      <mat-icon
-                        class="text-slate-400 scale-75 transition-colors group-hover:text-primary-500"
-                        >person</mat-icon
-                      >
-                      {{ vehicle.owner }}
+                    <div class="text-sm text-slate-500 flex items-center gap-1.5 transition-colors group-hover:text-slate-700 mt-0.5">
+                      <mat-icon class="text-slate-400 scale-75 transition-colors group-hover:text-primary-500">person</mat-icon>
+                      <span class="truncate">{{ vehicle.owner }}</span>
                     </div>
-                    <div
-                      class="text-sm text-slate-500 flex items-center gap-1.5 transition-colors group-hover:text-slate-700"
-                    >
-                      <mat-icon
-                        class="text-slate-400 scale-75 transition-colors group-hover:text-primary-500"
-                        >confirmation_number</mat-icon
-                      >
-                      Cupo:
-                      {{ vehicle.quota }}
-                    </div>
+                    <!-- <div class="text-sm text-slate-500 flex items-center gap-1.5 transition-colors group-hover:text-slate-700">
+                      <mat-icon class="text-slate-400 scale-75 transition-colors group-hover:text-primary-500">confirmation_number</mat-icon>
+                      Cupo: {{ vehicle.quota }}
+                    </div> -->
                   </div>
 
                   <mat-icon
@@ -125,9 +113,9 @@
           </div>
         </div>
       } @else {
-        <div class="px-6 pb-6 pt-6 flex flex-col h-full gap-5">
+        <div class="px-6 pb-6 pt-6 flex flex-col h-full gap-5 overflow-y-auto md:overflow-hidden">
           <div
-            class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm flex items-center justify-between shrink-0"
+            class="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm flex flex-col max-[390px]:items-start max-[390px]:gap-4 min-[391px]:flex-row min-[391px]:items-center min-[391px]:justify-between shrink-0"
           >
             <div class="flex items-center gap-4">
               <mat-icon class="!w-14 !h-14 !leading-[56px] text-[56px] text-center text-emerald-500"
@@ -145,10 +133,11 @@
             <button
               mat-stroked-button
               color="primary"
-              class="rounded-lg h-9 border-primary-200!"
+              class="rounded-lg h-9 border-primary-200! shrink-0 max-[390px]:w-full"
               (click)="changeVehicle()"
             >
-              <mat-icon class="scale-90 mr-1">change_circle</mat-icon> Cambiar
+              <mat-icon class="scale-90 mr-1">change_circle</mat-icon> 
+              <span>Cambiar</span>
             </button>
           </div>
 
@@ -179,7 +168,7 @@
           </div>
 
           <div
-            class="flex-1 bg-white rounded-2xl border border-slate-100 p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5 shadow-sm overflow-y-auto pr-2"
+            class="bg-white rounded-2xl border border-slate-100 p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-5 shadow-sm pr-2 shrink-0 md:shrink md:flex-1 md:overflow-y-auto"
           >
             @for (detail of selectedVehicleDetails(); track detail.label) {
               <div class="flex items-start gap-3.5">
@@ -274,10 +263,26 @@
         </div>
 
       </div>
+    } @else if (currentStep() === 3) {
+      <div class="flex flex-col items-center justify-center h-full w-full bg-white flex-1 min-h-[500px]">
+        <div class="w-full max-w-md text-center">
+          <mat-icon class="!w-16 !h-16 text-[64px] text-primary-500 mb-6 animate-pulse">cloud_sync</mat-icon>
+          <h3 class="text-xl font-bold text-slate-800 mb-2">Creando inspección...</h3>
+          <p class="text-slate-500 text-sm mb-8">Por favor espera mientras guardamos los datos del formulario.</p>
+          <mat-progress-bar mode="indeterminate" class="rounded-full"></mat-progress-bar>
+        </div>
+      </div>
+    } @else if (currentStep() === 4) {
+      <app-camera-upload 
+        class="h-full w-full block bg-white" 
+        (onCancel)="closeDialog()" 
+        (onFinish)="completeWizard($event)">
+      </app-camera-upload>
     }
   </mat-dialog-content>
 
-  <mat-dialog-actions class="!p-6 !m-0 border-t border-slate-100 bg-white flex justify-end gap-3 shrink-0">
+  @if (currentStep() < 3) {
+    <mat-dialog-actions class="!p-6 !m-0 border-t border-slate-100 bg-white flex justify-end gap-3 shrink-0">
     @if (currentStep() === 2) {
       <button mat-button class="text-slate-600 rounded-lg h-10 px-4" (click)="prevStep()">
         <mat-icon class="mr-1 scale-90">arrow_back</mat-icon> Volver
@@ -296,8 +301,9 @@
       </button>
     } @else {
       <button mat-flat-button color="primary" class="rounded-lg h-10 px-6" (click)="finishInspection()">
-        Finalizar y Guardar <mat-icon class="ml-1.5 scale-90">save</mat-icon>
+        Siguiente <mat-icon class="ml-1.5 scale-90">arrow_forward</mat-icon>
       </button>
     }
   </mat-dialog-actions>
+  }
 </div>
