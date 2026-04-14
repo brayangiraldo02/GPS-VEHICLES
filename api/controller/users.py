@@ -20,17 +20,12 @@ async def process_login(data: LoginRequest, db: Session):
       user_data_payload = {
         "codigo": user_admin,
       }
-      user_data = {
-        "id": user_admin,
-        "nombre": "Administrador",
-      }
       access_token = create_access_token(user_data_payload)
       refresh_token = create_refresh_token(user_data_payload)
       
       return {
         'access_token': access_token, 
         'refresh_token': refresh_token,
-        'user_data': user_data, 
         'status_code': 200
       }
     
@@ -43,23 +38,18 @@ async def process_login(data: LoginRequest, db: Session):
     if user.ESTADO == 0:
       return {'error': 'Usuario inactivo', 'status_code':403}
 
-    user_data_payload = {"codigo": user.ID} # Datos mínimos para el token
+    user_data_payload = {"codigo": user.ID}
 
     access_token = create_access_token(user_data_payload)
     refresh_token = create_refresh_token(user_data_payload)
-    
-    user_data = {"id": user.ID, "nombre": user.NOMBRE}
 
     return {
       'access_token': access_token,
       'refresh_token': refresh_token,
-      'user_data': user_data,
       'status_code': 200
     }
   except Exception as e:
     return {'error': str(e), 'status_code':500}
-  # finally:
-  #   db.close()
 
 # ---------------------------------------------------------------------------------------------------------------
 

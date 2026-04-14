@@ -20,8 +20,7 @@ async def login(data: LoginRequest, db: Session = Depends(get_db)):
   
   return TokenResponse(
     access_token=login_result['access_token'],
-    refresh_token=login_result['refresh_token'],
-    user=login_result['user_data']
+    refresh_token=login_result['refresh_token']
   )
 
 # ---------------------------------------------------------------------------------------------------------------

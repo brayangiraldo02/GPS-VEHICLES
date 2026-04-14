@@ -8,7 +8,6 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
   access_token: str
   refresh_token: str
-  user: Dict[str, Any]  # Datos del usuario para localStorage
 
 class RefreshTokenRequest(BaseModel):
   refresh_token: str
