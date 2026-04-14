@@ -1,14 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from schemas.users import LoginRequest, TokenResponse, RefreshTokenRequest
-from controller.users import process_login, refresh_access_token
+from schemas.login import LoginRequest, TokenResponse, RefreshTokenRequest
+from controller.login import process_login, refresh_access_token
 from sqlalchemy.orm import Session
 from config.dbconnection import get_db
 
-users_router = APIRouter()
+login_router = APIRouter()
 
-@users_router.post('/login', tags=["Users"], response_model=TokenResponse)
+@login_router.post('/login', tags=["Users"], response_model=TokenResponse)
 async def login(data: LoginRequest, db: Session = Depends(get_db)):
   login_result = await process_login(data, db)
 
@@ -25,7 +25,7 @@ async def login(data: LoginRequest, db: Session = Depends(get_db)):
 
 # ---------------------------------------------------------------------------------------------------------------
 
-@users_router.post('/refresh-token', tags=["Users"])
+@login_router.post('/refresh-token', tags=["Users"])
 async def refresh_token(data: RefreshTokenRequest):
   result = await refresh_access_token(data.refresh_token)
 

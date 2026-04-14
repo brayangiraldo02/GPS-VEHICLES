@@ -3,7 +3,7 @@ from fastapi.encoders import jsonable_encoder
 from config.dbconnection import get_db
 from sqlalchemy.orm import Session
 from security.jwt_handler import create_access_token, create_refresh_token, decode_refresh_token
-from schemas.users import LoginRequest
+from schemas.login import LoginRequest
 from models.usuarios import Usuarios
 from dotenv import load_dotenv
 import os
