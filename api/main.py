@@ -4,6 +4,7 @@ from routes.login import login_router
 from routes.vehicles import vehicles_router
 from routes.owners import owners_router
 from routes.inspections import inspections_router
+from routes.users import users_router
 from security.deps import get_current_user
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -22,6 +23,7 @@ app.add_middleware(
 )
 
 app.include_router(login_router, prefix="/users")
+app.include_router(users_router, prefix="/users", dependencies=[Depends(get_current_user)])
 app.include_router(vehicles_router, prefix="/vehicles", dependencies=[Depends(get_current_user)])
 app.include_router(owners_router, prefix="/owners", dependencies=[Depends(get_current_user)])
 app.include_router(inspections_router, prefix="/inspections", dependencies=[Depends(get_current_user)])
