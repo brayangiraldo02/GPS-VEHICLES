@@ -14,8 +14,8 @@ async def inspections_types(db: Session):
          
     response = [
       {
-        'ID': inspection.ID,
-        'Name': inspection.NOMBRE
+        'id': inspection.ID,
+        'name': inspection.NOMBRE
       } for inspection in inspections
     ]
     return JSONResponse(content=jsonable_encoder(response), status_code=200)

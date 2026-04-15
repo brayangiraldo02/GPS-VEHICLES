@@ -14,9 +14,9 @@ async def owners_list(db: Session):
          
     response = [
       {
-        'ID': owner.ID, 
-        'Name': owner.NOMBRE,
-        'City': owner.ID_CIUDAD
+        'id': owner.ID, 
+        'name': owner.NOMBRE,
+        'city': owner.ID_CIUDAD
       } for owner in owners
     ]
     return JSONResponse(content=jsonable_encoder(response), status_code=200)

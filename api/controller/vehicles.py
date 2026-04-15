@@ -45,22 +45,22 @@ async def vehicles_per_owner(owner_id: str, db: Session):
          
     response = [
       {
-        'Plate': vehicle.PLACA, 
-        'Brand': vehicle.Brand,
-        'Model': vehicle.MODELO,
-        'Color': vehicle.Color,
-        'Vehicle_type': vehicle.Vehicle_type,
-        'Owner_id': vehicle.Owner_id,
-        'Owner_name': vehicle.Owner_name,
-        'Service': vehicle.SERVICIO,
-        'Status': vehicle.Status,
-        'Cuo_admon': vehicle.CUO_ADMON,
-        'Iva': vehicle.IVA,
-        'PREND_APAG': vehicle.PREND_APAG,
-        'GPS_SERIAL': vehicle.GPS_SERIAL,
-        'CEL_SERIAL': vehicle.CEL_SERIAL,
-        'CEL_NUM': vehicle.Cel_num,
-        'Date_created': vehicle.FEC_CREADO
+        'plate': vehicle.PLACA, 
+        'brand': vehicle.Brand,
+        'model': vehicle.MODELO,
+        'color': vehicle.Color,
+        'vehicle_type': vehicle.Vehicle_type,
+        'owner_id': vehicle.Owner_id,
+        'owner_name': vehicle.Owner_name,
+        'service': vehicle.SERVICIO,
+        'status': vehicle.Status,
+        'cuo_admon': vehicle.CUO_ADMON,
+        'iva': vehicle.IVA,
+        'prend_apag': vehicle.PREND_APAG,
+        'gps_serial': vehicle.GPS_SERIAL,
+        'cel_serial': vehicle.CEL_SERIAL,
+        'cel_num': vehicle.Cel_num,
+        'date_created': vehicle.FEC_CREADO
       } for vehicle in vehicles
     ]
     return JSONResponse(content=jsonable_encoder(response), status_code=200)
