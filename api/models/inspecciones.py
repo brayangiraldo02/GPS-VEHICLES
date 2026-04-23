@@ -4,7 +4,6 @@ from config.dbconnection import Base
 class Inspecciones(Base):
   __tablename__ = 'INSPECCIONES'
 
-  EMPRESA = Column(CHAR(2), nullable=False, default='0')
   ID = Column(Integer, nullable=False, autoincrement=True, primary_key=True)
   FECHA = Column(Date)
   HORA = Column(Time)
@@ -14,7 +13,8 @@ class Inspecciones(Base):
   NOMPROPI = Column(CHAR(50))
   TIPO_INSPEC = Column(CHAR(2))
   NOMINSPEC = Column(CHAR(30))
-  KILOMETRAJE = Column(Integer)
+  TIPO_INSTALACION = Column(CHAR(50))
+  KILOMETRAJ = Column(Integer)
   GPS_SERIAL = Column(CHAR(25))
   CEL_NUMERO = Column(CHAR(12))
   CEL_SERIAL = Column(CHAR(25))
