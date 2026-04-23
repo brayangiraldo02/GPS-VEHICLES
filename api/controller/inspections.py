@@ -1,5 +1,7 @@
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
+from fastapi import UploadFile, File
+from typing import List
 from sqlalchemy.orm import Session
 from models.tiposinspeccion import TiposInspeccion
 from models.inspecciones import Inspecciones
@@ -9,6 +11,13 @@ from models.usuarios import Usuarios
 from schemas.inspections import NewInspection
 from datetime import datetime
 import pytz
+import os
+import shutil
+from dotenv import load_dotenv
+
+load_dotenv()
+
+upload_directory = os.getenv('DIRECTORY_IMG')
 
 # ---------------------------------------------------------------------------------------------------------------
 
@@ -79,5 +88,64 @@ async def create_inspection(data: NewInspection, db: Session, current_user: dict
     db.commit()
 
     return JSONResponse(content={"id": new_inspection.ID}, status_code=201)
+  except Exception as e:
+    return JSONResponse(content={"message": str(e)}, status_code=500)
+
+# ---------------------------------------------------------------------------------------------------------------
+
+async def upload_images(inspection_id: int, db: Session, images: List[UploadFile] = File(...)):
+  try:
+    inspection = db.query(Inspecciones).filter(Inspecciones.ID == inspection_id).first()
+    if not inspection:
+      return JSONResponse(content={"message": "Inspection not found"}, status_code=404)
+
+    vehicle_id = inspection.ID_VEHICULO
+
+    available_slots = []
+    for i in range(1, 9):
+      column_name = f"FOTO{i:02d}"
+      if not getattr(inspection, column_name):
+        available_slots.append(column_name)
+
+    if not available_slots:
+      return JSONResponse(
+        content={"message": "No hay espacios disponibles para guardar más fotos."},
+        status_code=400
+      )
+        
+    full_inspection_path = os.path.join(upload_directory, vehicle_id, "inspections", str(inspection_id))
+    os.makedirs(full_inspection_path, exist_ok=True)
+
+    saved_count = 0
+    for slot_name, image in zip(available_slots, images):
+      _, ext = os.path.splitext(image.filename)
+      new_filename = f"{slot_name.lower()}{ext}"
+      
+      full_file_path = os.path.join(full_inspection_path, new_filename)
+      with open(full_file_path, "wb") as buffer:
+          shutil.copyfileobj(image.file, buffer)
+      
+      relative_db_path = os.path.join(vehicle_id, "inspections", str(inspection_id), new_filename)
+      normalized_path = relative_db_path.replace("\\", "/") 
+      setattr(inspection, slot_name, normalized_path) 
+      saved_count += 1
+
+    panama_timezone = pytz.timezone('America/Panama')
+    now_in_panama = datetime.now(panama_timezone)
+    date = now_in_panama.strftime("%Y-%m-%d")
+    time = now_in_panama.strftime("%I:%M:%S %p")
+
+    inspection.FECHA = date
+    inspection.HORA = time
+    inspection.ESTADO = "FIN"
+    inspection.NRO_FOTOS = saved_count
+
+    db.commit()
+
+    message = f"{saved_count} de {len(images)} imágenes fueron guardadas."
+    if len(images) > saved_count:
+      message += f" {len(images) - saved_count} fueron descartadas por falta de espacio."
+
+    return JSONResponse(content={"message": message}, status_code=201)
   except Exception as e:
     return JSONResponse(content={"message": str(e)}, status_code=500)
