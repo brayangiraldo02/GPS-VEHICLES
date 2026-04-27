@@ -149,3 +149,37 @@ async def upload_images(inspection_id: int, db: Session, images: List[UploadFile
     return JSONResponse(content={"message": message}, status_code=201)
   except Exception as e:
     return JSONResponse(content={"message": str(e)}, status_code=500)
+  
+# ---------------------------------------------------------------------------------------------------------------
+
+async def upload_signature(inspection_id: int, db: Session, signature: UploadFile = File(...)):
+  try:
+    inspection = db.query(Inspecciones).filter(Inspecciones.ID == inspection_id).first()
+    if not inspection:
+      return JSONResponse(content={"message": "Inspection not found"}, status_code=404)
+    
+    if inspection.FIRMA:
+      return JSONResponse(content={"message": "Ya existe una firma para esta inspección."}, status_code=400)
+    
+    vehicle_id = inspection.ID_VEHICULO
+
+    full_signature_path = os.path.join(upload_directory, vehicle_id, "inspections", str(inspection_id))
+    os.makedirs(full_signature_path, exist_ok=True)
+
+    _, ext = os.path.splitext(signature.filename)
+    new_filename = f"firma{ext}"
+    
+    full_file_path = os.path.join(full_signature_path, new_filename)
+    with open(full_file_path, "wb") as buffer:
+      shutil.copyfileobj(signature.file, buffer)
+    
+    relative_db_path = os.path.join(vehicle_id, "inspections", str(inspection_id), new_filename)
+    normalized_path = relative_db_path.replace("\\", "/") 
+    inspection.FIRMA = normalized_path 
+
+    db.commit()
+
+    return JSONResponse(content={"message": "Signature uploaded successfully"}, status_code=201)
+  except Exception as e:
+    db.rollback()
+    return JSONResponse(content={"message": str(e)}, status_code=500)
