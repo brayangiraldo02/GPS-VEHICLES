@@ -89,6 +89,7 @@ async def create_inspection(data: NewInspection, db: Session, current_user: dict
 
     return JSONResponse(content={"id": new_inspection.ID}, status_code=201)
   except Exception as e:
+    db.rollback()
     return JSONResponse(content={"message": str(e)}, status_code=500)
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -148,6 +149,7 @@ async def upload_images(inspection_id: int, db: Session, images: List[UploadFile
 
     return JSONResponse(content={"message": message}, status_code=201)
   except Exception as e:
+    db.rollback()
     return JSONResponse(content={"message": str(e)}, status_code=500)
   
 # ---------------------------------------------------------------------------------------------------------------
