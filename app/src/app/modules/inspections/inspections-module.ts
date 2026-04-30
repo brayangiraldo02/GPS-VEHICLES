@@ -4,11 +4,11 @@ import { CommonModule } from '@angular/common';
 import { InspectionsRoutingModule } from './inspections-routing-module';
 import { TableInspectionsComponent } from './pages/table-inspections/table-inspections.component';
 import { SharedModule } from '../../shared/shared-module';
-import { DialogNewInspectionComponent } from './components/dialog-new-inspection/dialog-new-inspection.component';
-import { MatSelect, MatOption } from "@angular/material/select";
+import { DialogNewInspectionComponent } from './dialogs/dialog-new-inspection/dialog-new-inspection.component';
+import { MatSelect, MatOption } from '@angular/material/select';
 import { CameraUploadComponent } from './components/camera-upload/camera-upload.component';
-import { PhotoPreviewDialogComponent } from './components/photo-preview-dialog/photo-preview-dialog.component';
-import { PhotoGalleryDialogComponent } from './components/photo-gallery-dialog/photo-gallery-dialog.component';
+import { PhotoPreviewDialogComponent } from './dialogs/photo-preview-dialog/photo-preview-dialog.component';
+import { PhotoGalleryDialogComponent } from './dialogs/photo-gallery-dialog/photo-gallery-dialog.component';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 @NgModule({
@@ -17,14 +17,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     DialogNewInspectionComponent,
     CameraUploadComponent,
     PhotoPreviewDialogComponent,
-    PhotoGalleryDialogComponent
+    PhotoGalleryDialogComponent,
   ],
-  imports: [
-    CommonModule,
-    InspectionsRoutingModule,
-    SharedModule,
-    MatProgressBarModule
-  ]
+  imports: [CommonModule, InspectionsRoutingModule, SharedModule, MatProgressBarModule],
 })
-export class InspectionsModule { }
-
+export class InspectionsModule {}

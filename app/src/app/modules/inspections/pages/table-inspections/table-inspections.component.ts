@@ -5,7 +5,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
-import { DialogNewInspectionComponent } from '../../components/dialog-new-inspection/dialog-new-inspection.component';
+import { DialogNewInspectionComponent } from '../../dialogs/dialog-new-inspection/dialog-new-inspection.component';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 
 @Component({
