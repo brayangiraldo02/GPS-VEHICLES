@@ -7,6 +7,8 @@
         @else if (currentStep() === 2) { Paso 2: Datos de la Inspección }
         @else if (currentStep() === 3) { Paso 3: Guardando Datos }
         @else if (currentStep() === 4) { Paso 4: Evidencia Fotográfica }
+        @else if (currentStep() === 5) { Paso 5: Subiendo Evidencia }
+        @else if (currentStep() === 6) { Paso 6: Firma de Inspección }
       </p>
     </div>
     <button
@@ -278,6 +280,21 @@
         (onCancel)="closeDialog()" 
         (onFinish)="completeWizard($event)">
       </app-camera-upload>
+    } @else if (currentStep() === 5) {
+      <div class="flex flex-col items-center justify-center h-full w-full bg-white flex-1 min-h-[500px]">
+        <div class="w-full max-w-md text-center">
+          <mat-icon class="!w-16 !h-16 text-[64px] text-primary-500 mb-6 animate-pulse">cloud_upload</mat-icon>
+          <h3 class="text-xl font-bold text-slate-800 mb-2">Subiendo evidencia...</h3>
+          <p class="text-slate-500 text-sm mb-8">Por favor espera mientras subimos las fotos de la inspección.</p>
+          <mat-progress-bar mode="indeterminate" class="rounded-full"></mat-progress-bar>
+        </div>
+      </div>
+    } @else if (currentStep() === 6) {
+      <app-signature-upload 
+        class="h-full w-full block bg-white" 
+        (onCancel)="closeDialog()" 
+        (onFinish)="onSignatureFinish($event)">
+      </app-signature-upload>
     }
   </mat-dialog-content>
 

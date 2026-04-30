@@ -10,6 +10,7 @@ import { CameraUploadComponent } from './components/camera-upload/camera-upload.
 import { PhotoPreviewDialogComponent } from './dialogs/photo-preview-dialog/photo-preview-dialog.component';
 import { PhotoGalleryDialogComponent } from './dialogs/photo-gallery-dialog/photo-gallery-dialog.component';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { SignatureUploadComponent } from './components/signature-upload/signature-upload.component';
 
 @NgModule({
   declarations: [
@@ -18,6 +19,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
     CameraUploadComponent,
     PhotoPreviewDialogComponent,
     PhotoGalleryDialogComponent,
+    SignatureUploadComponent,
   ],
   imports: [CommonModule, InspectionsRoutingModule, SharedModule, MatProgressBarModule],
 })

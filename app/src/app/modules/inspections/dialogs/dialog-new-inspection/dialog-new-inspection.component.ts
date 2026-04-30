@@ -127,7 +127,19 @@ export class DialogNewInspectionComponent {
 
   // Se llama cuando la cámara termina de subir todo
   completeWizard(photos: string[]) {
-    console.log('Inspección terminada con fotos:', photos);
+    console.log('Fotos subidas:', photos);
+    // Cambiamos al Paso 5 (Pantalla de Carga para la firma)
+    this.currentStep.set(5);
+
+    // Simulamos la carga de fotos (espera de 2 segundos)
+    setTimeout(() => {
+      // Avanzamos al Paso 6 (Firma)
+      this.currentStep.set(6);
+    }, 2000);
+  }
+
+  onSignatureFinish(signature: string) {
+    console.log('Inspección terminada con firma:', signature);
     this.dialogRef.close(true); // Cerramos el modal grande definitivamente
   }
 }
