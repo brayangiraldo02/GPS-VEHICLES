@@ -1,7 +1,7 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, signal, inject, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
-import { VEHICLES_MOCK } from '../../consts/new-inspection.mock';
 import { Vehicle } from '../../interfaces/vehicles.interface';
+import { ApiService } from '../../../../core/services/api.service';
 
 @Component({
   selector: 'app-dialog-new-inspection',
@@ -9,9 +9,11 @@ import { Vehicle } from '../../interfaces/vehicles.interface';
   templateUrl: './dialog-new-inspection.component.html',
   styleUrls: ['./dialog-new-inspection.component.css'],
 })
-export class DialogNewInspectionComponent {
-  // Lista de vehículos quemada
-  vehicles = signal<Vehicle[]>(VEHICLES_MOCK);
+export class DialogNewInspectionComponent implements OnInit {
+  private apiService = inject(ApiService);
+
+  // Lista de vehículos
+  vehicles = signal<Vehicle[]>([]);
 
   // Estado de búsqueda
   searchQuery = signal<string>('');
@@ -47,7 +49,8 @@ export class DialogNewInspectionComponent {
       (v) =>
         (v.plate || '').toLowerCase().includes(query) ||
         (v.unitId || '').toLowerCase().includes(query) ||
-        (v.owner || '').toLowerCase().includes(query),
+        (v.owner || '').toLowerCase().includes(query) ||
+        (v.owner_name || '').toLowerCase().includes(query),
     );
 
     // 3. PROTECCIÓN DEL HTML: Sin importar cuántos coincidan, solo renderizamos 10
@@ -63,18 +66,33 @@ export class DialogNewInspectionComponent {
     return [
       { label: 'Unidad', value: vehicle.unitId || 'N/A', icon: 'tag' },
       { label: 'Cupo', value: vehicle.quota || 'N/A', icon: 'confirmation_number' },
-      { label: 'Propietario', value: vehicle.owner || 'N/A', icon: 'person' },
+      { label: 'Propietario', value: vehicle.owner || vehicle.owner_name || 'N/A', icon: 'person' },
       { label: 'Marca', value: vehicle.brand, icon: 'branding_watermark' },
       { label: 'Modelo', value: vehicle.model, icon: 'model_training' },
       { label: 'Placa', value: vehicle.plate, icon: 'directions_car' },
       { label: 'Año', value: vehicle.year?.toString() || 'N/A', icon: 'calendar_today' },
       { label: 'Motor', value: vehicle.engine || 'N/A', icon: 'engineering' },
       { label: 'VIN', value: vehicle.vin || 'N/A', icon: 'fingerprint' },
-      { label: 'Dispositivo ID', value: vehicle.deviceId || 'N/A', icon: 'router' },
+      { label: 'Dispositivo ID', value: vehicle.deviceId || vehicle.gps_serial || 'N/A', icon: 'router' },
     ];
   });
 
   constructor(public dialogRef: MatDialogRef<DialogNewInspectionComponent>) {}
+
+  ngOnInit(): void {
+    this.loadVehicles();
+  }
+
+  loadVehicles() {
+    this.apiService.post<Vehicle[]>('/vehicles/vehicles-per-owner/', {}).subscribe({
+      next: (data) => {
+        this.vehicles.set(data || []);
+      },
+      error: (error) => {
+        console.error('Error loading vehicles:', error);
+      }
+    });
+  }
 
   onSearch(event: Event) {
     const value = (event.target as HTMLInputElement).value;
@@ -87,6 +105,20 @@ export class DialogNewInspectionComponent {
 
   selectVehicle(vehicle: Vehicle) {
     this.selectedVehicle.set(vehicle);
+    
+    // Buscar info detallada por placa
+    this.apiService.post<Vehicle>(`/vehicles/info/?vehicle_plate=${vehicle.plate}`, {}).subscribe({
+      next: (fullInfo) => {
+        if (fullInfo) {
+          // Combinamos la info previa con la nueva
+          this.selectedVehicle.set({ ...vehicle, ...fullInfo });
+        }
+      },
+      error: (error) => {
+        console.error('Error loading vehicle details:', error);
+      }
+    });
+
     // Opcional: Limpiar búsqueda al seleccionar
     this.searchQuery.set('');
   }

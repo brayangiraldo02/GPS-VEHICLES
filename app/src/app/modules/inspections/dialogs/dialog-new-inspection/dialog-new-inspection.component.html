@@ -71,12 +71,12 @@
                         {{ vehicle.plate }}
                       </span>
                       <span class="text-sm font-medium text-slate-400 transition-colors group-hover:text-primary-400 whitespace-nowrap">
-                        (Unidad: {{ vehicle.unitId }})
+                        (Unidad: {{ vehicle.unitId || 'N/A' }})
                       </span>
                     </div>
                     <div class="text-sm text-slate-500 flex items-center gap-1.5 transition-colors group-hover:text-slate-700 mt-0.5">
                       <mat-icon class="text-slate-400 scale-75 transition-colors group-hover:text-primary-500">person</mat-icon>
-                      <span class="truncate">{{ vehicle.owner }}</span>
+                      <span class="truncate">{{ vehicle.owner || vehicle.owner_name }}</span>
                     </div>
                     <!-- <div class="text-sm text-slate-500 flex items-center gap-1.5 transition-colors group-hover:text-slate-700">
                       <mat-icon class="text-slate-400 scale-75 transition-colors group-hover:text-primary-500">confirmation_number</mat-icon>
