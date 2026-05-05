@@ -45,9 +45,9 @@ export class DialogNewInspectionComponent {
     // 2. BÚSQUEDA: Filtramos todo el array en memoria
     const results = this.vehicles().filter(
       (v) =>
-        v.plate.toLowerCase().includes(query) ||
-        v.unitId.toLowerCase().includes(query) ||
-        v.owner.toLowerCase().includes(query),
+        (v.plate || '').toLowerCase().includes(query) ||
+        (v.unitId || '').toLowerCase().includes(query) ||
+        (v.owner || '').toLowerCase().includes(query),
     );
 
     // 3. PROTECCIÓN DEL HTML: Sin importar cuántos coincidan, solo renderizamos 10
@@ -61,16 +61,16 @@ export class DialogNewInspectionComponent {
 
     // Mapeamos los datos para iterar fácilmente en el HTML
     return [
-      { label: 'Unidad', value: vehicle.unitId, icon: 'tag' },
-      { label: 'Cupo', value: vehicle.quota, icon: 'confirmation_number' },
-      { label: 'Propietario', value: vehicle.owner, icon: 'person' },
+      { label: 'Unidad', value: vehicle.unitId || 'N/A', icon: 'tag' },
+      { label: 'Cupo', value: vehicle.quota || 'N/A', icon: 'confirmation_number' },
+      { label: 'Propietario', value: vehicle.owner || 'N/A', icon: 'person' },
       { label: 'Marca', value: vehicle.brand, icon: 'branding_watermark' },
       { label: 'Modelo', value: vehicle.model, icon: 'model_training' },
       { label: 'Placa', value: vehicle.plate, icon: 'directions_car' },
-      { label: 'Año', value: vehicle.year.toString(), icon: 'calendar_today' },
-      { label: 'Motor', value: vehicle.engine, icon: 'engineering' },
-      { label: 'VIN', value: vehicle.vin, icon: 'fingerprint' },
-      { label: 'Dispositivo ID', value: vehicle.deviceId, icon: 'router' },
+      { label: 'Año', value: vehicle.year?.toString() || 'N/A', icon: 'calendar_today' },
+      { label: 'Motor', value: vehicle.engine || 'N/A', icon: 'engineering' },
+      { label: 'VIN', value: vehicle.vin || 'N/A', icon: 'fingerprint' },
+      { label: 'Dispositivo ID', value: vehicle.deviceId || 'N/A', icon: 'router' },
     ];
   });
 
