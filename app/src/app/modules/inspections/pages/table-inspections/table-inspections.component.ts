@@ -80,7 +80,7 @@ export class TableInspectionsComponent implements OnInit {
         (v) =>
           (v.plate || '').toLowerCase().includes(filterStr) ||
           (v.brand || '').toLowerCase().includes(filterStr) ||
-          (v.unitId || '').toLowerCase().includes(filterStr)
+          (v.id || '').toLowerCase().includes(filterStr)
       );
     })
   );

@@ -1,19 +1,19 @@
 export interface Vehicle {
-  id: number;
+  id: string;
   plate: string;
   brand: string;
   model: string;
-  owner_name?: string;
-  // Campos adicionales usados en mocks o info detallada
-  unitId?: string;
-  owner?: string;
-  quota?: string;
-  vin?: string;
-  engine?: string;
-  year?: number;
-  deviceId?: string;
   color?: string;
   vehicle_type?: string;
+  owner_id?: string;
+  owner_name?: string;
+  service?: string;
   status?: string;
+  cuo_admon?: number;
+  iva?: number;
+  prend_apag?: number;
   gps_serial?: string;
+  cel_serial?: string;
+  cel_num?: string;
+  date_created?: string;
 }
