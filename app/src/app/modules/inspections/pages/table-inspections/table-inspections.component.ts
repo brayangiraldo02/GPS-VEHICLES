@@ -1,12 +1,21 @@
-import { Component, effect, HostListener, signal, viewChild, inject } from '@angular/core';
+import { Component, effect, HostListener, signal, viewChild, inject, OnInit, computed } from '@angular/core';
 import { INSPECTIONS_MOCK } from '../../consts/inspections.mock'; // Ajusta tus rutas si es necesario
 import { Inspection } from '../../interfaces/inspections.interface'; // Ajusta tus rutas si es necesario
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
-import { DialogNewInspectionComponent } from '../../components/dialog-new-inspection/dialog-new-inspection.component';
+import { DialogNewInspectionComponent } from '../../dialogs/dialog-new-inspection/dialog-new-inspection.component';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+import { ApiService } from '../../../../core/services/api.service';
+import { Owner } from '../../interfaces/owners.interface';
+import { FormControl } from '@angular/forms';
+import { combineLatest, map, Observable, startWith } from 'rxjs';
+import { toObservable } from '@angular/core/rxjs-interop';
+
+import { Vehicle } from '../../interfaces/vehicles.interface';
+
+import { MatOptionSelectionChange } from '@angular/material/core';
 
 @Component({
   selector: 'app-table-inspections',
@@ -14,11 +23,12 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
   templateUrl: './table-inspections.component.html',
   styleUrl: './table-inspections.component.css',
 })
-export class TableInspectionsComponent {
+export class TableInspectionsComponent implements OnInit {
   readonly paginator = viewChild(MatPaginator);
   readonly sort = viewChild(MatSort);
   readonly dialog = inject(MatDialog);
   readonly breakpointObserver = inject(BreakpointObserver);
+  private apiService = inject(ApiService);
 
   pageSizeOptions = signal<number[]>([10, 20, 50]);
 
@@ -39,6 +49,42 @@ export class TableInspectionsComponent {
   readonly HEADER_HEIGHT = 48;
   readonly FIXED_SPACE_VERTICAL = 465;
 
+  // Autocomplete Clientes
+  ownerControl = new FormControl('');
+  owners = signal<Owner[]>([]);
+  private owners$ = toObservable(this.owners);
+  selectedOwnerId: string | null = null;
+
+  filteredOwners: Observable<Owner[]> = combineLatest([
+    this.owners$,
+    this.ownerControl.valueChanges.pipe(startWith('')),
+  ]).pipe(
+    map(([owners, filterValue]) => {
+      const filterStr = (filterValue || '').toLowerCase();
+      return owners.filter((owner) => (owner.name || '').toLowerCase().includes(filterStr));
+    })
+  );
+
+  // Autocomplete Vehículos
+  vehicleControl = new FormControl('');
+  vehicles = signal<Vehicle[]>([]);
+  private vehicles$ = toObservable(this.vehicles);
+
+  filteredVehicles: Observable<Vehicle[]> = combineLatest([
+    this.vehicles$,
+    this.vehicleControl.valueChanges.pipe(startWith('')),
+  ]).pipe(
+    map(([vehicles, filterValue]) => {
+      const filterStr = (filterValue || '').toLowerCase();
+      return vehicles.filter(
+        (v) =>
+          (v.plate || '').toLowerCase().includes(filterStr) ||
+          (v.brand || '').toLowerCase().includes(filterStr) ||
+          (v.id || '').toLowerCase().includes(filterStr)
+      );
+    })
+  );
+
   constructor() {
     effect(() => {
       if (this.paginator()) {
@@ -48,6 +94,50 @@ export class TableInspectionsComponent {
       if (this.sort()) {
         this.dataSource.sort = this.sort()!;
       }
+    });
+  }
+
+  ngOnInit(): void {
+    this.loadOwners();
+    this.loadVehicles();
+  }
+
+  private loadOwners(): void {
+    this.apiService.get<Owner[]>('/owners').subscribe({
+      next: (data) => {
+        this.owners.set(data || []);
+      },
+      error: (error) => {
+        console.error('Error loading owners:', error);
+      },
+    });
+  }
+
+  onOwnerSelected(event: MatOptionSelectionChange, owner: Owner): void {
+    if (event.isUserInput) {
+      this.selectedOwnerId = owner.id.toString();
+      this.vehicleControl.setValue(''); // Reset vehículo al cambiar dueño
+      this.loadVehicles(this.selectedOwnerId);
+    }
+  }
+
+  onOwnerCleared(): void {
+    if (!this.ownerControl.value || this.ownerControl.value.trim() === '') {
+      this.selectedOwnerId = null;
+      this.loadVehicles();
+    }
+  }
+
+  private loadVehicles(ownerId: string | null = null): void {
+    const endpoint = `/vehicles/vehicles-per-owner/${ownerId ? `?owner_id=${ownerId}` : ''}`;
+    this.apiService.post<Vehicle[]>(endpoint, {}).subscribe({
+      next: (data) => {
+        this.vehicles.set(data || []);
+      },
+      error: (error) => {
+        console.error('Error loading vehicles:', error);
+        this.vehicles.set([]);
+      },
     });
   }
 

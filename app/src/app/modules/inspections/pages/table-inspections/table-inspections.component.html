@@ -27,7 +27,20 @@
           class="w-full compact-form-field"
         >
           <mat-label>Cliente</mat-label>
-          <input matInput placeholder="Buscar..." />
+          <input
+            matInput
+            placeholder="Buscar..."
+            [formControl]="ownerControl"
+            [matAutocomplete]="autoOwner"
+            (input)="onOwnerCleared()"
+          />
+          <mat-autocomplete #autoOwner="matAutocomplete">
+            @for (owner of filteredOwners | async; track owner.id) {
+              <mat-option [value]="owner.name" (onSelectionChange)="onOwnerSelected($event, owner)">
+                {{ owner.name }}
+              </mat-option>
+            }
+          </mat-autocomplete>
           <mat-icon matSuffix class="text-slate-400 scale-90">person_search</mat-icon>
         </mat-form-field>
       </div>
@@ -39,7 +52,22 @@
           class="w-full compact-form-field"
         >
           <mat-label>Vehículo / Placa</mat-label>
-          <input matInput placeholder="Ej. TT450" />
+          <input
+            matInput
+            placeholder="Ej. TT450"
+            [formControl]="vehicleControl"
+            [matAutocomplete]="autoVehicle"
+          />
+          <mat-autocomplete #autoVehicle="matAutocomplete">
+            @for (vehicle of filteredVehicles | async; track vehicle.id) {
+              <mat-option [value]="vehicle.plate">
+                <div class="flex flex-col">
+                  <span class="font-bold text-sm">{{ vehicle.plate }}</span>
+                  <span class="text-xs text-slate-500">{{ vehicle.brand }} - {{ vehicle.model }}</span>
+                </div>
+              </mat-option>
+            }
+          </mat-autocomplete>
           <mat-icon matSuffix class="text-slate-400 scale-90">directions_car</mat-icon>
         </mat-form-field>
       </div>

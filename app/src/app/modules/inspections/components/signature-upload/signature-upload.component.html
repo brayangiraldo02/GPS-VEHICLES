@@ -1,0 +1,79 @@
+<div class="flex flex-col h-full overflow-hidden bg-white">
+  <!-- Contenedor Principal -->
+  <div class="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col items-center justify-center">
+    <div
+      class="w-full max-w-6xl bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col"
+    >
+      <!-- Área del Canvas -->
+      <div class="p-4 sm:p-6 relative bg-slate-50/30 flex flex-col">
+        <!-- Contenedor con borde del Canvas con altura controlada -->
+        <div
+          class="relative bg-white border-2 border-slate-200 rounded-2xl overflow-hidden shadow-inner h-[300px] sm:h-[400px]"
+        >
+          <!-- El Canvas -->
+          <canvas
+            #signatureCanvas
+            class="w-full h-full touch-none cursor-crosshair"
+            (mousedown)="startDrawing($event)"
+            (mousemove)="draw($event)"
+            (mouseup)="stopDrawing()"
+            (mouseleave)="stopDrawing()"
+            (touchstart)="startDrawingTouch($event)"
+            (touchmove)="drawTouch($event)"
+            (touchend)="stopDrawing()"
+          >
+          </canvas>
+
+          <!-- Botón Limpiar (Flotante arriba a la derecha, más prominente) -->
+          @if (hasSignature()) {
+            <div class="absolute top-4 right-4 z-50">
+              <button
+                mat-flat-button
+                color="warn"
+                class="!bg-rose-500 !text-white shadow-lg rounded-lg h-9"
+                (click)="clearSignature()"
+              >
+                <mat-icon class="mr-1 scale-90">delete</mat-icon>
+                <span>Limpiar</span>
+              </button>
+            </div>
+          }
+
+          <!-- Placeholder visual si está vacío -->
+          @if (!hasSignature()) {
+            <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+              <div class="flex flex-col items-center gap-3 opacity-20">
+                <mat-icon class="!w-16 !h-16 text-[64px] text-slate-400 rotate-[-10deg]"
+                  >edit_note</mat-icon
+                >
+                <span class="text-slate-400 font-bold text-3xl select-none rotate-[-5deg]"
+                  >Firmar aquí</span
+                >
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer de Acciones -->
+  <div class="p-6 border-t border-slate-100 bg-white flex justify-end gap-3 shrink-0">
+    <button
+      mat-stroked-button
+      class="rounded-lg h-10 border-slate-300! text-slate-600!"
+      (click)="onCancel.emit()"
+    >
+      Cerrar
+    </button>
+    <button
+      mat-flat-button
+      color="primary"
+      class="rounded-lg h-10 px-6"
+      [disabled]="!hasSignature()"
+      (click)="saveAndFinish()"
+    >
+      Subir firma <mat-icon class="ml-1.5 scale-90">check_circle</mat-icon>
+    </button>
+  </div>
+</div>

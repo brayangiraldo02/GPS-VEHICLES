@@ -15,8 +15,7 @@ async def user_info(db: Session, current_user: dict):
       return JSONResponse(content={"message": "User not found"}, status_code=404)
 
     response = {
-      "id": user.ID,
-      "nombre": user.NOMBRE
+      "name": user.NOMBRE
     }
     
     return JSONResponse(content=jsonable_encoder(response), status_code=200)

@@ -16,6 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 @NgModule({
   declarations: [],
@@ -37,6 +38,7 @@ import { MatSelectModule } from '@angular/material/select';
     MatPaginatorModule,
     MatDialogModule,
     MatSelectModule,
+    MatAutocompleteModule,
   ],
   exports: [
     MatIconModule,
@@ -55,6 +57,7 @@ import { MatSelectModule } from '@angular/material/select';
     MatPaginatorModule,
     MatDialogModule,
     MatSelectModule,
+    MatAutocompleteModule,
   ],
 })
 export class SharedModule {}

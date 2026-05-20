@@ -37,6 +37,17 @@ export class ApiService {
     });
   }
 
+  postFormData<T>(endpoint: string, formData: FormData): Observable<T> {
+    let headers = new HttpHeaders();
+    const token = this.authService.accessToken;
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+    return this.http.post<T>(`${URLBASE}${endpoint}`, formData, {
+      headers: headers,
+    });
+  }
+
   put<T>(endpoint: string, body: unknown): Observable<T> {
     return this.http.put<T>(`${URLBASE}${endpoint}`, body, {
       headers: this.getHeaders(),
