@@ -8,8 +8,9 @@ from models.inspecciones import Inspecciones
 from models.vehiculos import Vehiculos
 from models.propietarios import Propietarios
 from models.usuarios import Usuarios
-from schemas.inspections import NewInspection
-from datetime import datetime
+from schemas.inspections import NewInspection, InspectionInfo
+from utils.inspections import update_expired_inspections
+from datetime import datetime, timedelta
 import pytz
 import os
 import shutil
@@ -18,6 +19,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 upload_directory = os.getenv('DIRECTORY_IMG')
+route_api = os.getenv('ROUTE_API')
 
 # ---------------------------------------------------------------------------------------------------------------
 
@@ -185,3 +187,84 @@ async def upload_signature(inspection_id: int, db: Session, signature: UploadFil
   except Exception as e:
     db.rollback()
     return JSONResponse(content={"message": str(e)}, status_code=500)
+
+# ---------------------------------------------------------------------------------------------------------------
+
+async def inspections_list(data: InspectionInfo, db: Session, current_user: dict):
+  try:
+    panama_timezone = pytz.timezone('America/Panama')
+    now_in_panama = datetime.now(panama_timezone)
+    today = now_in_panama.date()
+    yesterday = today - timedelta(days=1)
+
+    filters = []
+
+    if data.initial_date != '' and data.final_date != '':
+        filters.append(Inspecciones.FECHA >= data.initial_date)
+        filters.append(Inspecciones.FECHA <= data.final_date)
+    
+    if data.owner != '':
+        filters.append(Inspecciones.PROPIETARIO == data.owner)
+    
+    if data.vehicle_id != '':
+        filters.append(Inspecciones.ID_VEHICULO == data.vehicle_id)
+
+    if not filters:
+      inspections = db.query(Inspecciones).filter(Inspecciones.FECHA >= yesterday).order_by(Inspecciones.FECHA.desc(), Inspecciones.HORA.desc()).all()
+    else:
+      inspections = db.query(Inspecciones).filter(*filters).order_by(Inspecciones.FECHA.desc(), Inspecciones.HORA.desc()).all()
+
+    if not inspections:
+      return JSONResponse(content={"message": "No inspections found"}, status_code=404)
+
+    await update_expired_inspections(db, inspections_list=inspections)
+
+    inspections_types = db.query(TiposInspeccion).all()
+
+    inspections_dict = {inspection.ID: inspection.NOMBRE for inspection in inspections_types}
+
+    owners_dict = {owner.ID: owner.NOMBRE for owner in db.query(Propietarios).all()}
+
+    inspections_data = []
+
+    for inspection in inspections:
+      photos = []
+      for i in range(1, 17): 
+        photo_field = f"FOTO{i:02d}"
+        photo_value = getattr(inspection, photo_field, "")
+        if photo_value and photo_value.strip(): 
+          photo_url = f"{route_api}uploads/vehiculos/{photo_value}"
+          photos.append(photo_url)
+
+      signature_url = f"{route_api}uploads/vehiculos/{inspection.FIRMA}" if inspection.FIRMA and inspection.FIRMA.strip() else ''
+      
+      can_edit = 1 if (inspection.ESTADO == "PEN" and data.user and inspection.USUARIO == data.user) else 0
+
+      user_id = current_user.get("codigo")
+      user = db.query(Usuarios).filter(Usuarios.ID == user_id).first()
+      
+      inspections_data.append({
+        "id": inspection.ID,
+        "date": inspection.FECHA.strftime('%d-%m-%Y') + ' ' + inspection.HORA.strftime('%H:%M') if inspection.FECHA and inspection.HORA else None,
+        "id_inspection_type": inspection.TIPO_INSPEC,
+        "inspection_type": inspections_dict.get(inspection.TIPO_INSPEC, ""),
+        "details": inspection.DESCRIPCION,
+        "vehicle_id": inspection.ID_VEHICULO,
+        "plate": inspection.PLACA,
+        "owner_id": inspection.PROPIETARIO,
+        "owner": owners_dict.get(inspection.PROPIETARIO, ""),
+        "status": inspection.ESTADO,
+        "can_edit": can_edit,
+        "photos": photos,
+        "signature": [signature_url],
+        "user": user.NOMBRE if user else "",
+      })
+
+    if not inspections_data:
+      return JSONResponse(content={"message": "No inspections found"}, status_code=404)
+    return JSONResponse(content=jsonable_encoder(inspections_data), status_code=200)
+  except Exception as e:
+    db.rollback()
+    return JSONResponse(content={"message": str(e)}, status_code=500)
+  finally:
+    db.close()

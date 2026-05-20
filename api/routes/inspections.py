@@ -22,3 +22,7 @@ async def post_upload_images(inspection_id: int, db: Session = Depends(get_db), 
 @inspections_router.post('/upload-signature/{inspection_id}/', tags=["Inspections"])
 async def post_upload_signature(inspection_id: int, db: Session = Depends(get_db), signature: UploadFile = File(...)):
   return await upload_signature(inspection_id, db, signature)
+
+@inspections_router.post('/list/', tags=["Inspections"])
+async def post_list_inspections(data: InspectionInfo, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+  return await inspections_list(data, db, current_user)
