@@ -29,10 +29,12 @@ import { PhotoPreviewDialogComponent } from '../photo-preview-dialog/photo-previ
                   <mat-icon class="text-white">zoom_in</mat-icon>
                 </div>
                 
-                <button mat-icon-button color="warn" class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-white/90 hover:bg-white shadow-sm scale-75"
-                        (click)="deletePhoto($event, $index)">
-                  <mat-icon class="text-rose-500">delete</mat-icon>
-                </button>
+                @if (data.canDelete !== false) {
+                  <button mat-icon-button color="warn" class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-white/90 hover:bg-white shadow-sm scale-75"
+                          (click)="deletePhoto($event, $index)">
+                    <mat-icon class="text-rose-500">delete</mat-icon>
+                  </button>
+                }
               </div>
             }
           </div>
@@ -58,28 +60,41 @@ export class PhotoGalleryDialogComponent {
 
   constructor(
     public dialogRef: MatDialogRef<PhotoGalleryDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { photos: string[], onUpdate: (photos: string[]) => void }
+    @Inject(MAT_DIALOG_DATA)
+    public data: {
+      photos: string[];
+      onUpdate?: (photos: string[]) => void;
+      canDelete?: boolean;
+    }
   ) {}
 
   deletePhoto(event: Event, index: number) {
     event.stopPropagation();
     const updatedPhotos = this.data.photos.filter((_, i) => i !== index);
     this.data.photos = updatedPhotos;
-    this.data.onUpdate(updatedPhotos);
+    if (this.data.onUpdate) {
+      this.data.onUpdate(updatedPhotos);
+    }
   }
 
   openPreview(index: number) {
     const dialogRef = this.dialog.open(PhotoPreviewDialogComponent, {
       width: '700px',
       panelClass: 'rounded-2xl',
-      data: { photoUrl: this.data.photos[index] }
+      data: {
+        photoUrl: this.data.photos[index],
+        canDelete: this.data.canDelete,
+      },
     });
 
-    dialogRef.afterClosed().subscribe(shouldDelete => {
-      if (shouldDelete) {
+
+    dialogRef.afterClosed().subscribe((shouldDelete) => {
+      if (shouldDelete && this.data.canDelete !== false) {
         const updatedPhotos = this.data.photos.filter((_, i) => i !== index);
         this.data.photos = updatedPhotos;
-        this.data.onUpdate(updatedPhotos);
+        if (this.data.onUpdate) {
+          this.data.onUpdate(updatedPhotos);
+        }
       }
     });
   }

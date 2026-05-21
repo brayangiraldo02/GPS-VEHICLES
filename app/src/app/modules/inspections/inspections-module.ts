@@ -11,6 +11,7 @@ import { PhotoPreviewDialogComponent } from './dialogs/photo-preview-dialog/phot
 import { PhotoGalleryDialogComponent } from './dialogs/photo-gallery-dialog/photo-gallery-dialog.component';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { SignatureUploadComponent } from './components/signature-upload/signature-upload.component';
+import { NoResultDataComponent } from './components/no-result-data/no-result-data.component';
 
 @NgModule({
   declarations: [
@@ -20,6 +21,7 @@ import { SignatureUploadComponent } from './components/signature-upload/signatur
     PhotoPreviewDialogComponent,
     PhotoGalleryDialogComponent,
     SignatureUploadComponent,
+    NoResultDataComponent
   ],
   imports: [CommonModule, InspectionsRoutingModule, SharedModule, MatProgressBarModule],
 })

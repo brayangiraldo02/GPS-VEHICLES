@@ -27,9 +27,11 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
         <button mat-stroked-button mat-dialog-close class="rounded-lg border-slate-300! text-slate-600!">
           Cerrar
         </button>
-        <button mat-flat-button color="warn" class="rounded-lg bg-rose-500! text-white" (click)="dialogRef.close(true)">
-          <mat-icon class="mr-1 scale-90">delete</mat-icon> Eliminar
-        </button>
+        @if (data.canDelete !== false) {
+          <button mat-flat-button color="warn" class="rounded-lg bg-rose-500! text-white" (click)="dialogRef.close(true)">
+            <mat-icon class="mr-1 scale-90">delete</mat-icon> Eliminar
+          </button>
+        }
       </div>
     </div>
   `
@@ -37,6 +39,6 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 export class PhotoPreviewDialogComponent {
   constructor(
     public dialogRef: MatDialogRef<PhotoPreviewDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { photoUrl: string }
+    @Inject(MAT_DIALOG_DATA) public data: { photoUrl: string; canDelete?: boolean }
   ) {}
 }

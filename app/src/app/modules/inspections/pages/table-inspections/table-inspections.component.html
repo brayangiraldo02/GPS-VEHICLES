@@ -1,3 +1,16 @@
+@if (isInitialLoading()) {
+  <div class="fixed inset-0 z-[9999] bg-slate-50/80 backdrop-blur-sm flex flex-col items-center justify-center p-6">
+    <div class="w-full max-w-md text-center bg-white p-10 rounded-3xl shadow-xl border border-slate-100">
+      <mat-icon class="!w-20 !h-20 text-[80px] text-primary-500 mb-8 animate-pulse">cloud_sync</mat-icon>
+      <h3 class="text-2xl font-bold text-slate-800 mb-3 tracking-tight">Cargando Sistema</h3>
+      <p class="text-slate-500 text-base mb-10 leading-relaxed">
+        Estamos preparando la información de las inspecciones. Por favor, espera un momento.
+      </p>
+      <mat-progress-bar mode="indeterminate" class="rounded-full h-2"></mat-progress-bar>
+    </div>
+  </div>
+}
+
 <div class="container mx-auto px-4 py-6">
   <div class="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4 shrink-0">
     <div>
@@ -15,7 +28,7 @@
   </div>
 
   <div
-    class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-auto md:max-h-[calc(100vh-18rem)] min-h-[400px]"
+    class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-auto md:max-h-[calc(100vh-18rem)]"
   >
     <div
       class="p-5 border-b border-slate-100 bg-slate-50/50 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3 items-center shrink-0 z-20 relative"
@@ -60,7 +73,7 @@
           />
           <mat-autocomplete #autoVehicle="matAutocomplete">
             @for (vehicle of filteredVehicles | async; track vehicle.id) {
-              <mat-option [value]="vehicle.plate">
+              <mat-option [value]="vehicle.plate" (onSelectionChange)="onVehicleSelected($event, vehicle)">
                 <div class="flex flex-col">
                   <span class="font-bold text-sm">{{ vehicle.plate }}</span>
                   <span class="text-xs text-slate-500">{{ vehicle.brand }} - {{ vehicle.model }}</span>
@@ -79,9 +92,9 @@
           class="w-full compact-form-field"
         >
           <mat-label>Rango de Fechas</mat-label>
-          <mat-date-range-input [rangePicker]="picker" (click)="picker.open()">
-            <input matStartDate placeholder="Inicio" readonly />
-            <input matEndDate placeholder="Fin" readonly />
+          <mat-date-range-input [rangePicker]="picker" [formGroup]="range" (click)="picker.open()">
+            <input matStartDate formControlName="start" placeholder="Inicio" readonly />
+            <input matEndDate formControlName="end" placeholder="Fin" readonly />
           </mat-date-range-input>
           <mat-datepicker-toggle
             matIconSuffix
@@ -115,8 +128,22 @@
     </div>
 
     <div class="overflow-auto relative w-full">
-      <table mat-table [dataSource]="dataSource" matSort class="w-full min-w-[1000px]">
-        <ng-container matColumnDef="date">
+      @if (isLoading()) {
+        <div class="flex flex-col items-center justify-center py-20 bg-white flex-1 min-h-[400px]">
+          <div class="w-full max-w-md text-center">
+            <mat-icon class="!w-16 !h-16 text-[64px] text-primary-500 mb-6 animate-pulse">cloud_sync</mat-icon>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Cargando inspecciones...</h3>
+            <p class="text-slate-500 text-sm mb-8">Por favor espera mientras obtenemos los datos.</p>
+            <mat-progress-bar mode="indeterminate" class="rounded-full"></mat-progress-bar>
+          </div>
+        </div>
+      } @else if (dataSource.data.length === 0) {
+        <div class="py-12 border-b border-slate-100">
+          <app-no-result-data></app-no-result-data>
+        </div>
+      } @else {
+        <table mat-table [dataSource]="dataSource" matSort class="w-full min-w-[1000px]">
+          <ng-container matColumnDef="date">
           <th mat-header-cell *matHeaderCellDef mat-sort-header class="pl-6 w-32">Fecha</th>
           <td mat-cell *matCellDef="let row" class="pl-6 text-slate-600 text-sm whitespace-nowrap">
             <div class="font-medium">{{ row.date.split(' ')[0] }}</div>
@@ -124,28 +151,23 @@
           </td>
         </ng-container>
 
-        <ng-container matColumnDef="type">
+        <ng-container matColumnDef="inspection_type">
           <th mat-header-cell *matHeaderCellDef mat-sort-header class="w-40">Tipo</th>
           <td mat-cell *matCellDef="let row" class="text-slate-700 font-semibold text-xs uppercase">
-            {{ row.type }}
+            {{ row.inspection_type }}
           </td>
         </ng-container>
 
-        <ng-container matColumnDef="description">
+        <ng-container matColumnDef="details">
           <th mat-header-cell *matHeaderCellDef class="w-64">Descripción</th>
           <td
             mat-cell
             *matCellDef="let row"
             class="text-slate-500 text-sm max-w-[250px] truncate"
-            [matTooltip]="row.description"
+            [matTooltip]="row.details"
           >
-            {{ row.description }}
+            {{ row.details }}
           </td>
-        </ng-container>
-
-        <ng-container matColumnDef="unit">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Unidad</th>
-          <td mat-cell *matCellDef="let row" class="text-slate-700 font-medium">{{ row.unit }}</td>
         </ng-container>
 
         <ng-container matColumnDef="plate">
@@ -164,6 +186,11 @@
           <td mat-cell *matCellDef="let row" class="text-slate-600 text-sm">{{ row.owner }}</td>
         </ng-container>
 
+        <ng-container matColumnDef="user">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>Creado por</th>
+          <td mat-cell *matCellDef="let row" class="text-slate-600 text-sm">{{ row.user }}</td>
+        </ng-container>
+
         <ng-container matColumnDef="status">
           <th mat-header-cell *matHeaderCellDef mat-sort-header>Estado</th>
           <td mat-cell *matCellDef="let row">
@@ -172,7 +199,7 @@
                 'px-3 py-1 rounded-full text-xs font-bold border ' + getStatusClass(row.status)
               "
             >
-              {{ row.status }}
+              {{ getStatusLabel(row.status) }}
             </span>
           </td>
         </ng-container>
@@ -181,11 +208,30 @@
           <th mat-header-cell *matHeaderCellDef class="!justify-center w-32">Acciones</th>
           <td mat-cell *matCellDef="let row" class="!justify-center w-32">
             <div class="flex justify-center gap-1">
-              <button mat-icon-button class="text-red-500 hover:bg-red-50" matTooltip="Ver Reporte">
+              <button
+                *ngIf="row.can_edit === 0 && row.status === 'FIN'"
+                mat-icon-button
+                class="text-red-500 hover:bg-red-50"
+                matTooltip="Ver Reporte"
+              >
                 <mat-icon class="scale-90">picture_as_pdf</mat-icon>
               </button>
-              <button mat-icon-button class="text-blue-500 hover:bg-blue-50" matTooltip="Ver Fotos">
+              <button
+                *ngIf="row.can_edit === 0 && row.status === 'FIN' && row.photos?.length > 0"
+                mat-icon-button
+                class="text-blue-500 hover:bg-blue-50"
+                matTooltip="Ver Fotos"
+                (click)="viewPhotos(row)"
+              >
                 <mat-icon class="scale-90">image</mat-icon>
+              </button>
+              <button
+                *ngIf="row.can_edit === 1 && row.status === 'PEN'"
+                mat-icon-button
+                class="text-amber-500 hover:bg-amber-50"
+                matTooltip="Editar"
+              >
+                <mat-icon class="scale-90">edit</mat-icon>
               </button>
               <button
                 mat-icon-button
@@ -210,6 +256,7 @@
           [class]="'h-14 border-b border-slate-100 last:border-0 ' + getRowClass(row.status)"
         ></tr>
       </table>
+      }
     </div>
 
     <mat-paginator

@@ -4,6 +4,7 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Vehicle } from '../../interfaces/vehicles.interface';
 import { ApiService } from '../../../../core/services/api.service';
 import { SnackbarService } from '../../../../core/services/snackbar.service';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-dialog-new-inspection',
@@ -17,6 +18,7 @@ export class DialogNewInspectionComponent implements OnInit {
 
   // Lista de vehículos
   vehicles = signal<Vehicle[]>([]);
+  isLoadingVehicles = signal<boolean>(true);
 
   // Estado de búsqueda
   searchQuery = signal<string>('');
@@ -123,14 +125,18 @@ export class DialogNewInspectionComponent implements OnInit {
   }
 
   loadVehicles() {
-    this.apiService.post<Vehicle[]>('/vehicles/vehicles-per-owner/', {}).subscribe({
-      next: (data) => {
-        this.vehicles.set(data || []);
-      },
-      error: (error) => {
-        console.error('Error loading vehicles:', error);
-      }
-    });
+    this.isLoadingVehicles.set(true);
+    this.apiService
+      .post<Vehicle[]>('/vehicles/vehicles-per-owner/', {})
+      .pipe(finalize(() => this.isLoadingVehicles.set(false)))
+      .subscribe({
+        next: (data) => {
+          this.vehicles.set(data || []);
+        },
+        error: (error) => {
+          console.error('Error loading vehicles:', error);
+        },
+      });
   }
 
   loadInspectionTypes() {

@@ -1,16 +1,16 @@
 import { Component, effect, HostListener, signal, viewChild, inject, OnInit, computed } from '@angular/core';
-import { INSPECTIONS_MOCK } from '../../consts/inspections.mock'; // Ajusta tus rutas si es necesario
-import { Inspection } from '../../interfaces/inspections.interface'; // Ajusta tus rutas si es necesario
+import { Inspection } from '../../interfaces/inspections.interface';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
 import { DialogNewInspectionComponent } from '../../dialogs/dialog-new-inspection/dialog-new-inspection.component';
+import { PhotoGalleryDialogComponent } from '../../dialogs/photo-gallery-dialog/photo-gallery-dialog.component';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { ApiService } from '../../../../core/services/api.service';
 import { Owner } from '../../interfaces/owners.interface';
-import { FormControl } from '@angular/forms';
-import { combineLatest, map, Observable, startWith } from 'rxjs';
+import { FormControl, FormGroup } from '@angular/forms';
+import { combineLatest, map, Observable, startWith, finalize } from 'rxjs';
 import { toObservable } from '@angular/core/rxjs-interop';
 
 import { Vehicle } from '../../interfaces/vehicles.interface';
@@ -31,19 +31,21 @@ export class TableInspectionsComponent implements OnInit {
   private apiService = inject(ApiService);
 
   pageSizeOptions = signal<number[]>([10, 20, 50]);
+  isLoading = signal<boolean>(false);
+  isInitialLoading = signal<boolean>(true);
 
   displayedColumns: string[] = [
     'date',
-    'type',
-    'description',
-    'unit',
+    'inspection_type',
+    'details',
     'plate',
     'owner',
+    'user',
     'status',
     'actions',
   ];
 
-  dataSource = new MatTableDataSource<Inspection>(INSPECTIONS_MOCK);
+  dataSource = new MatTableDataSource<Inspection>([]);
 
   readonly ROW_HEIGHT = 56;
   readonly HEADER_HEIGHT = 48;
@@ -69,6 +71,7 @@ export class TableInspectionsComponent implements OnInit {
   vehicleControl = new FormControl('');
   vehicles = signal<Vehicle[]>([]);
   private vehicles$ = toObservable(this.vehicles);
+  selectedVehicleId: string | null = null;
 
   filteredVehicles: Observable<Vehicle[]> = combineLatest([
     this.vehicles$,
@@ -85,6 +88,12 @@ export class TableInspectionsComponent implements OnInit {
     })
   );
 
+  // Rango de Fechas
+  range = new FormGroup({
+    start: new FormControl<Date | null>(null),
+    end: new FormControl<Date | null>(null),
+  });
+
   constructor() {
     effect(() => {
       if (this.paginator()) {
@@ -100,6 +109,12 @@ export class TableInspectionsComponent implements OnInit {
   ngOnInit(): void {
     this.loadOwners();
     this.loadVehicles();
+    this.loadInspections({
+      owner: '',
+      vehicle_id: '',
+      initial_date: '',
+      final_date: '',
+    });
   }
 
   private loadOwners(): void {
@@ -116,7 +131,8 @@ export class TableInspectionsComponent implements OnInit {
   onOwnerSelected(event: MatOptionSelectionChange, owner: Owner): void {
     if (event.isUserInput) {
       this.selectedOwnerId = owner.id.toString();
-      this.vehicleControl.setValue(''); // Reset vehículo al cambiar dueño
+      this.vehicleControl.setValue('');
+      this.selectedVehicleId = null;
       this.loadVehicles(this.selectedOwnerId);
     }
   }
@@ -139,6 +155,36 @@ export class TableInspectionsComponent implements OnInit {
         this.vehicles.set([]);
       },
     });
+  }
+
+  onVehicleSelected(event: MatOptionSelectionChange, vehicle: Vehicle): void {
+    if (event.isUserInput) {
+      this.selectedVehicleId = vehicle.id;
+    }
+  }
+
+  loadInspections(filters: any = {}): void {
+    const isInitial = this.isInitialLoading();
+    if (!isInitial) {
+      this.isLoading.set(true);
+    }
+    this.apiService
+      .post<Inspection[]>('/inspections/list/', filters)
+      .pipe(
+        finalize(() => {
+          this.isLoading.set(false);
+          this.isInitialLoading.set(false);
+        })
+      )
+      .subscribe({
+        next: (data) => {
+          this.dataSource.data = data || [];
+        },
+        error: (error) => {
+          console.error('Error loading inspections:', error);
+          this.dataSource.data = [];
+        },
+      });
   }
 
   @HostListener('window:resize')
@@ -174,22 +220,35 @@ export class TableInspectionsComponent implements OnInit {
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'FINALIZADO':
+      case 'FIN':
         return 'bg-emerald-100 text-emerald-700 border-emerald-200';
-      case 'PENDIENTE':
+      case 'PEN':
         return 'bg-amber-100 text-amber-700 border-amber-200';
-      case 'SUSPENDIDO':
+      case 'SUS':
         return 'bg-rose-100 text-rose-700 border-rose-200';
       default:
         return 'bg-slate-100 text-slate-600 border-slate-200';
     }
   }
 
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'PEN':
+        return 'Pendiente';
+      case 'FIN':
+        return 'Finalizada';
+      case 'SUS':
+        return 'Suspendida';
+      default:
+        return status;
+    }
+  }
+
   getRowClass(status: string): string {
     switch (status) {
-      case 'PENDIENTE':
+      case 'PEN':
         return 'bg-amber-50/60 hover:bg-amber-100/50';
-      case 'SUSPENDIDO':
+      case 'SUS':
         return 'bg-rose-50/60 hover:bg-rose-100/50';
       default:
         return 'hover:bg-slate-50 transition-colors';
@@ -197,8 +256,23 @@ export class TableInspectionsComponent implements OnInit {
   }
 
   search() {
-    console.log('Buscando...');
+    const filters: any = {
+      owner: this.selectedOwnerId || '',
+      vehicle_id: this.selectedVehicleId || '',
+      initial_date: '',
+      final_date: '',
+    };
+
+    if (this.range.value.start) {
+      filters.initial_date = this.range.value.start.toISOString().split('T')[0];
+    }
+    if (this.range.value.end) {
+      filters.final_date = this.range.value.end.toISOString().split('T')[0];
+    }
+
+    this.loadInspections(filters);
   }
+
   openOptions() {
     console.log('Opciones...');
   }
@@ -208,11 +282,45 @@ export class TableInspectionsComponent implements OnInit {
     const isSmall = this.breakpointObserver.isMatched(Breakpoints.Small);
     const dialogWidth = isXSmall ? '100vw' : isSmall ? '95vw' : '1050px';
 
-    this.dialog.open(DialogNewInspectionComponent, {
+    const dialogRef = this.dialog.open(DialogNewInspectionComponent, {
       width: dialogWidth,
       maxWidth: isXSmall ? '100vw' : '95vw',
       panelClass: 'custom-dialog-container',
       disableClose: true,
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      // Reiniciamos el componente
+      this.isInitialLoading.set(true);
+      
+      // Limpiamos controles de filtros
+      this.ownerControl.setValue('');
+      this.vehicleControl.setValue('');
+      this.range.reset();
+      
+      // Limpiamos IDs seleccionados
+      this.selectedOwnerId = null;
+      this.selectedVehicleId = null;
+
+      // Recargamos datos sin filtros
+      this.loadInspections({
+        owner: '',
+        vehicle_id: '',
+        initial_date: '',
+        final_date: '',
+      });
+    });
+  }
+
+  viewPhotos(row: Inspection) {
+    this.dialog.open(PhotoGalleryDialogComponent, {
+      width: '800px',
+      maxWidth: '95vw',
+      panelClass: 'custom-dialog-container',
+      data: {
+        photos: row.photos,
+        canDelete: false,
+      },
     });
   }
 }
