@@ -237,11 +237,10 @@ async def inspections_list(data: InspectionInfo, db: Session, current_user: dict
           photos.append(photo_url)
 
       signature_url = f"{route_api}uploads/vehiculos/{inspection.FIRMA}" if inspection.FIRMA and inspection.FIRMA.strip() else ''
-      
-      can_edit = 1 if (inspection.ESTADO == "PEN" and data.user and inspection.USUARIO == data.user) else 0
 
-      user_id = current_user.get("codigo")
-      user = db.query(Usuarios).filter(Usuarios.ID == user_id).first()
+      can_edit = 1 if (inspection.ESTADO == "PEN" and current_user.get("codigo") and str(inspection.USUARIO) == current_user.get("codigo")) else 0
+
+      user = db.query(Usuarios).filter(Usuarios.ID == str(inspection.USUARIO)).first()
       
       inspections_data.append({
         "id": inspection.ID,

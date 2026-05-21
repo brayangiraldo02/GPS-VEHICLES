@@ -13,7 +13,6 @@ class NewInspection(BaseModel):
   instalation_type: str
 
 class InspectionInfo(BaseModel):
-  user: str
   owner: Optional[str] = None
   vehicle_id: Optional[str] = None
   initial_date: Optional[str] = None
