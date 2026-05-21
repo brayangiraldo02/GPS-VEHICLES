@@ -116,7 +116,7 @@ async def upload_images(inspection_id: int, db: Session, images: List[UploadFile
         status_code=400
       )
         
-    full_inspection_path = os.path.join(upload_directory, vehicle_id, "inspections", str(inspection_id))
+    full_inspection_path = os.path.join(upload_directory, "vehicles", vehicle_id, "inspections", str(inspection_id))
     os.makedirs(full_inspection_path, exist_ok=True)
 
     saved_count = 0
@@ -128,7 +128,7 @@ async def upload_images(inspection_id: int, db: Session, images: List[UploadFile
       with open(full_file_path, "wb") as buffer:
           shutil.copyfileobj(image.file, buffer)
       
-      relative_db_path = os.path.join(vehicle_id, "inspections", str(inspection_id), new_filename)
+      relative_db_path = os.path.join("vehicles", vehicle_id, "inspections", str(inspection_id), new_filename)
       normalized_path = relative_db_path.replace("\\", "/") 
       setattr(inspection, slot_name, normalized_path) 
       saved_count += 1
@@ -167,7 +167,7 @@ async def upload_signature(inspection_id: int, db: Session, signature: UploadFil
     
     vehicle_id = inspection.ID_VEHICULO
 
-    full_signature_path = os.path.join(upload_directory, vehicle_id, "inspections", str(inspection_id))
+    full_signature_path = os.path.join(upload_directory, "vehicles", vehicle_id, "inspections", str(inspection_id))
     os.makedirs(full_signature_path, exist_ok=True)
 
     _, ext = os.path.splitext(signature.filename)
@@ -177,7 +177,7 @@ async def upload_signature(inspection_id: int, db: Session, signature: UploadFil
     with open(full_file_path, "wb") as buffer:
       shutil.copyfileobj(signature.file, buffer)
     
-    relative_db_path = os.path.join(vehicle_id, "inspections", str(inspection_id), new_filename)
+    relative_db_path = os.path.join("vehicles", vehicle_id, "inspections", str(inspection_id), new_filename)
     normalized_path = relative_db_path.replace("\\", "/") 
     inspection.FIRMA = normalized_path 
 
@@ -233,10 +233,10 @@ async def inspections_list(data: InspectionInfo, db: Session, current_user: dict
         photo_field = f"FOTO{i:02d}"
         photo_value = getattr(inspection, photo_field, "")
         if photo_value and photo_value.strip(): 
-          photo_url = f"{route_api}uploads/vehiculos/{photo_value}"
+          photo_url = f"{route_api}uploads/vehicles/{photo_value}"
           photos.append(photo_url)
 
-      signature_url = f"{route_api}uploads/vehiculos/{inspection.FIRMA}" if inspection.FIRMA and inspection.FIRMA.strip() else ''
+      signature_url = f"{route_api}uploads/vehicles/{inspection.FIRMA}" if inspection.FIRMA and inspection.FIRMA.strip() else ''
 
       can_edit = 1 if (inspection.ESTADO == "PEN" and current_user.get("codigo") and str(inspection.USUARIO) == current_user.get("codigo")) else 0
 
