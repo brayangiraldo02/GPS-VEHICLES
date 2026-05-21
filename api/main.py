@@ -6,9 +6,8 @@ from routes.owners import owners_router
 from routes.inspections import inspections_router
 from routes.users import users_router
 from security.deps import get_current_user
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-from config.dbconnection import Base, engine, get_db
+from fastapi.staticfiles import StaticFiles
+import os
 
 app = FastAPI()
 # app = FastAPI(root_path="/api", docs_url=None, redoc_url=None, openapi_url=None)
@@ -27,6 +26,9 @@ app.include_router(users_router, prefix="/users", dependencies=[Depends(get_curr
 app.include_router(vehicles_router, prefix="/vehicles", dependencies=[Depends(get_current_user)])
 app.include_router(owners_router, prefix="/owners", dependencies=[Depends(get_current_user)])
 app.include_router(inspections_router, prefix="/inspections", dependencies=[Depends(get_current_user)])
+
+UPLOADS_DIR = os.getenv('DIRECTORY_DOC')
+app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 @app.get("/", dependencies=[Depends(get_current_user)])
 def main():

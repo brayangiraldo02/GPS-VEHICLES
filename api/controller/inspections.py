@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-upload_directory = os.getenv('DIRECTORY_IMG')
+upload_directory = os.getenv('DIRECTORY_DOC')
 route_api = os.getenv('ROUTE_API')
 
 # ---------------------------------------------------------------------------------------------------------------
