@@ -8,6 +8,7 @@ from models.inspecciones import Inspecciones
 from models.vehiculos import Vehiculos
 from models.propietarios import Propietarios
 from models.usuarios import Usuarios
+from models.estados import Estados
 from schemas.inspections import NewInspection, InspectionInfo
 from utils.inspections import update_expired_inspections
 from datetime import datetime, timedelta
@@ -229,7 +230,7 @@ async def inspections_list(data: InspectionInfo, db: Session, current_user: dict
 
     for inspection in inspections:
       photos = []
-      for i in range(1, 17): 
+      for i in range(1, 9): 
         photo_field = f"FOTO{i:02d}"
         photo_value = getattr(inspection, photo_field, "")
         if photo_value and photo_value.strip(): 
@@ -267,3 +268,65 @@ async def inspections_list(data: InspectionInfo, db: Session, current_user: dict
     return JSONResponse(content={"message": str(e)}, status_code=500)
   finally:
     db.close()
+
+# ---------------------------------------------------------------------------------------------------------------
+
+async def inspection_details(inspection_id: int, db: Session):
+  try:
+    inspection = db.query(Inspecciones).filter(Inspecciones.ID == inspection_id).first()
+    if not inspection:
+      return JSONResponse(content={"message": "Inspection not found"}, status_code=404)
+
+    await update_expired_inspections(db, inspections_list=[inspection])
+
+    vehicle = db.query(Vehiculos).filter(Vehiculos.ID == inspection.ID_VEHICULO).first()
+    if not vehicle:
+      return JSONResponse(content={"message": "Vehicle not found"}, status_code=404)
+
+    owner = db.query(Propietarios).filter(Propietarios.ID == inspection.PROPIETARIO).first()
+    if not owner:
+      return JSONResponse(content={"message": "Owner not found"}, status_code=404)
+    
+    inspection_type = db.query(TiposInspeccion).filter(TiposInspeccion.ID == inspection.TIPO_INSPEC).first()
+    if not inspection_type:
+      return JSONResponse(content={"message": "Inspection type not found"}, status_code=404)
+
+    status = db.query(Estados).filter(Estados.ID == vehicle.ID_ESTADO).first()
+    vehicle_status = status.ID + ' - ' + status.NOMBRE if status else ''
+
+    photos = []
+    for i in range(1, 9): 
+      photo_field = f"FOTO{i:02d}"
+      photo_value = getattr(inspection, photo_field, "")
+      if photo_value and photo_value.strip(): 
+        photo_url = f"{route_api}uploads/vehiculos/{photo_value}"
+        photos.append(photo_url)
+
+    user = db.query(Usuarios).filter(Usuarios.ID == str(inspection.USUARIO)).first()
+    
+    inspection_data = {
+      "id": inspection.ID,
+      "date": inspection.FECHA.strftime('%d-%m-%Y') if inspection.FECHA else None,
+      "time": inspection.HORA.strftime('%H:%M') if inspection.HORA else None,
+      "owner": inspection.PROPIETARIO,
+      "owner_name": owner.NOMBRE,
+      "inspection_type": inspection.TIPO_INSPEC + ' - ' + inspection_type.NOMBRE,
+      "instalation_type": inspection.TIPO_INSTALACION,
+      "vehicle_id": inspection.ID_VEHICULO,
+      "plate": vehicle.PLACA,
+      "vehicle_status": vehicle_status,
+      "mileage": inspection.KILOMETRAJ if inspection.KILOMETRAJ else "",
+      "gps_serial": inspection.GPS_SERIAL if inspection.GPS_SERIAL else "",
+      "celular_number": inspection.CEL_NUMERO if inspection.CEL_NUMERO else "",
+      "celular_serial": inspection.CEL_SERIAL if inspection.CEL_SERIAL else "",
+      "description": inspection.DESCRIPCION,
+      "notes": inspection.OBSERVA if inspection.OBSERVA else "",
+      "status": inspection.ESTADO,
+      "user": user.NOMBRE if user else "",
+      "photos": photos,
+      "signature": 1 if inspection.FIRMA and inspection.FIRMA.strip() else 0
+    }
+
+    return JSONResponse(content=jsonable_encoder(inspection_data), status_code=200)
+  except Exception as e:
+    return JSONResponse(content={"message": str(e)}, status_code=500)
