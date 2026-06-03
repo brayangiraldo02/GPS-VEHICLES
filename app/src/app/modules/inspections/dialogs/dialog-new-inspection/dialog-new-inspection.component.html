@@ -1,14 +1,25 @@
 <div class="flex flex-col h-[92vh] md:h-[750px] w-full overflow-hidden">
-  <div class="flex items-center justify-between border-b border-slate-100 p-6 pb-4 shrink-0 bg-white z-20">
+  <div
+    class="flex items-center justify-between border-b border-slate-100 p-6 pb-4 shrink-0 bg-white z-20"
+  >
     <div>
-      <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Nueva Inspección</h2>
+      <h2 class="text-2xl font-bold text-slate-800 tracking-tight">
+        {{ isEditing() ? 'Editar Inspección' : 'Nueva Inspección' }}
+      </h2>
       <p class="text-slate-500 text-sm">
-        @if (currentStep() === 1) { Paso 1: Identificación del Vehículo }
-        @else if (currentStep() === 2) { Paso 2: Datos de la Inspección }
-        @else if (currentStep() === 3) { Paso 3: Guardando Datos }
-        @else if (currentStep() === 4) { Paso 4: Evidencia Fotográfica }
-        @else if (currentStep() === 5) { Paso 5: Subiendo Evidencia }
-        @else if (currentStep() === 6) { Paso 6: Firma de Inspección }
+        @if (currentStep() === 1) {
+          Paso 1: Identificación del Vehículo
+        } @else if (currentStep() === 2) {
+          Paso 2: Datos de la Inspección
+        } @else if (currentStep() === 3) {
+          Paso 3: Guardando Datos
+        } @else if (currentStep() === 4) {
+          Paso 4: Evidencia Fotográfica
+        } @else if (currentStep() === 5) {
+          Paso 5: Subiendo Evidencia
+        } @else if (currentStep() === 6) {
+          Paso 6: Firma de Inspección
+        }
       </p>
     </div>
     <button
@@ -20,18 +31,26 @@
     </button>
   </div>
 
-  <mat-dialog-content class="!p-0 flex-1 overflow-hidden flex flex-col bg-slate-50/50 relative !max-h-none w-full">
+  <mat-dialog-content
+    class="!p-0 flex-1 overflow-hidden flex flex-col bg-slate-50/50 relative !max-h-none w-full"
+  >
     @if (currentStep() === 1) {
       @if (isLoadingVehicles()) {
-        <div class="flex flex-col items-center justify-center h-full w-full bg-white flex-1 min-h-[500px]">
+        <div
+          class="flex flex-col items-center justify-center h-full w-full bg-white flex-1 min-h-[500px]"
+        >
           <div class="w-full max-w-md text-center">
-            <mat-icon class="!w-16 !h-16 text-[64px] text-primary-500 mb-6 animate-pulse">cloud_sync</mat-icon>
+            <mat-icon class="!w-16 !h-16 text-[64px] text-primary-500 mb-6 animate-pulse"
+              >cloud_sync</mat-icon
+            >
             <h3 class="text-xl font-bold text-slate-800 mb-2">Obteniendo vehículos...</h3>
-            <p class="text-slate-500 text-sm mb-8">Por favor espera mientras cargamos el inventario.</p>
+            <p class="text-slate-500 text-sm mb-8">
+              Por favor espera mientras cargamos el inventario.
+            </p>
             <mat-progress-bar mode="indeterminate" class="rounded-full"></mat-progress-bar>
           </div>
         </div>
-      } @else if (!selectedVehicle()) {
+      } @else if (!selectedVehicle() && !isEditing()) {
         <div class="px-6 pb-6 pt-6 space-y-5 flex flex-col h-full w-full">
           <mat-form-field
             appearance="fill"
@@ -76,15 +95,24 @@
 
                   <div class="flex-1 flex flex-col gap-1.5 md:gap-1 overflow-hidden py-0.5">
                     <div class="flex items-baseline flex-wrap gap-x-2">
-                      <span class="text-lg font-bold text-slate-800 group-hover:text-primary-700 transition-colors truncate">
+                      <span
+                        class="text-lg font-bold text-slate-800 group-hover:text-primary-700 transition-colors truncate"
+                      >
                         {{ vehicle.plate }}
                       </span>
-                      <span class="text-sm font-medium text-slate-400 transition-colors group-hover:text-primary-400 whitespace-nowrap">
+                      <span
+                        class="text-sm font-medium text-slate-400 transition-colors group-hover:text-primary-400 whitespace-nowrap"
+                      >
                         ({{ vehicle.brand || 'N/A' }} - {{ vehicle.model || 'N/A' }})
                       </span>
                     </div>
-                    <div class="text-sm text-slate-500 flex items-center gap-1.5 transition-colors group-hover:text-slate-700 mt-0.5">
-                      <mat-icon class="text-slate-400 scale-75 transition-colors group-hover:text-primary-500">person</mat-icon>
+                    <div
+                      class="text-sm text-slate-500 flex items-center gap-1.5 transition-colors group-hover:text-slate-700 mt-0.5"
+                    >
+                      <mat-icon
+                        class="text-slate-400 scale-75 transition-colors group-hover:text-primary-500"
+                        >person</mat-icon
+                      >
                       <span class="truncate">{{ vehicle.owner_id || vehicle.owner_name }}</span>
                     </div>
                     <!-- <div class="text-sm text-slate-500 flex items-center gap-1.5 transition-colors group-hover:text-slate-700">
@@ -142,12 +170,13 @@
               </div>
             </div>
             <button
+              *ngIf="!isEditing()"
               mat-stroked-button
               color="primary"
               class="rounded-lg h-9 border-primary-200! shrink-0 max-[390px]:w-full"
               (click)="changeVehicle()"
             >
-              <mat-icon class="scale-90 mr-1">change_circle</mat-icon> 
+              <mat-icon class="scale-90 mr-1">change_circle</mat-icon>
               <span>Cambiar</span>
             </button>
           </div>
@@ -203,30 +232,41 @@
       }
     } @else if (currentStep() === 2) {
       <div class="flex flex-col md:flex-row h-full p-6 gap-6 overflow-y-auto md:overflow-hidden">
-        
-        <div class="w-full md:w-1/3 flex flex-col bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden shrink-0 md:shrink md:h-full h-auto">
+        <div
+          class="w-full md:w-1/3 flex flex-col bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden shrink-0 md:shrink md:h-full h-auto"
+        >
           <div class="bg-slate-50/80 p-5 border-b border-slate-100 shrink-0">
             <h3 class="font-bold text-slate-800 flex items-center gap-2">
               <mat-icon class="text-primary-500">directions_car</mat-icon> Resumen del Vehículo
             </h3>
           </div>
-          
+
           <div class="p-5 md:overflow-y-auto overflow-visible flex-1 space-y-4 md:pr-3">
             <div class="bg-primary-50 border border-primary-100 rounded-xl p-4">
-              <span class="block text-xs font-bold text-primary-600 uppercase tracking-wide mb-1">Tipo de Inspección</span>
-              <span class="block text-sm font-semibold text-primary-900">{{ selectedInspectionType() }}</span>
+              <span class="block text-xs font-bold text-primary-600 uppercase tracking-wide mb-1"
+                >Tipo de Inspección</span
+              >
+              <span class="block text-sm font-semibold text-primary-900">{{
+                selectedInspectionType()
+              }}</span>
             </div>
 
             @for (detail of selectedVehicleDetails(); track detail.label) {
               <div class="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
-                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{{ detail.label }}</span>
+                <span
+                  class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5"
+                  >{{ detail.label }}</span
+                >
                 <span class="block text-sm font-medium text-slate-700">{{ detail.value }}</span>
               </div>
             }
           </div>
         </div>
 
-        <div [formGroup]="inspectionForm" class="w-full md:w-2/3 flex flex-col bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden shrink-0 md:shrink md:h-full h-auto">
+        <div
+          [formGroup]="inspectionForm"
+          class="w-full md:w-2/3 flex flex-col bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden shrink-0 md:shrink md:h-full h-auto"
+        >
           <div class="bg-white p-5 border-b border-slate-100 shrink-0">
             <h3 class="font-bold text-slate-800 flex items-center gap-2">
               <mat-icon class="text-slate-400">edit_document</mat-icon> Complete los datos
@@ -235,101 +275,179 @@
 
           <div class="p-6 md:overflow-y-auto overflow-visible flex-1">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <mat-form-field appearance="fill" subscriptSizing="dynamic" class="w-full compact-form-field">
+              <mat-form-field
+                appearance="fill"
+                subscriptSizing="dynamic"
+                class="w-full compact-form-field"
+              >
                 <mat-label>Kilometraje</mat-label>
-                <input matInput type="number" formControlName="mileage" placeholder="Ej. 90827">
+                <input matInput type="number" formControlName="mileage" placeholder="Ej. 90827" />
                 <span matTextSuffix class="text-slate-400 text-sm mr-2 font-medium">km</span>
                 <mat-icon matSuffix class="text-slate-400 scale-90">speed</mat-icon>
               </mat-form-field>
 
-              <mat-form-field appearance="fill" subscriptSizing="dynamic" class="w-full compact-form-field">
+              <mat-form-field
+                appearance="fill"
+                subscriptSizing="dynamic"
+                class="w-full compact-form-field"
+              >
                 <mat-label>Serial GPS</mat-label>
-                <input matInput formControlName="gps_serial" placeholder="Ingrese serial GPS">
+                <input matInput formControlName="gps_serial" placeholder="Ingrese serial GPS" />
                 <mat-icon matSuffix class="text-slate-400 scale-90">satellite_alt</mat-icon>
               </mat-form-field>
 
-              <mat-form-field appearance="fill" subscriptSizing="dynamic" class="w-full compact-form-field">
+              <mat-form-field
+                appearance="fill"
+                subscriptSizing="dynamic"
+                class="w-full compact-form-field"
+              >
                 <mat-label>Número celular</mat-label>
-                <input matInput type="tel" formControlName="celular_number" placeholder="Ej. 310 123 4567">
+                <input
+                  matInput
+                  type="tel"
+                  formControlName="celular_number"
+                  placeholder="Ej. 310 123 4567"
+                />
                 <mat-icon matSuffix class="text-slate-400 scale-90">phone_iphone</mat-icon>
               </mat-form-field>
 
-              <mat-form-field appearance="fill" subscriptSizing="dynamic" class="w-full compact-form-field">
+              <mat-form-field
+                appearance="fill"
+                subscriptSizing="dynamic"
+                class="w-full compact-form-field"
+              >
                 <mat-label>Serial Celular</mat-label>
-                <input matInput formControlName="celular_serial" placeholder="Ingrese serial del equipo">
+                <input
+                  matInput
+                  formControlName="celular_serial"
+                  placeholder="Ingrese serial del equipo"
+                />
                 <mat-icon matSuffix class="text-slate-400 scale-90">sim_card</mat-icon>
               </mat-form-field>
 
-              <mat-form-field appearance="fill" subscriptSizing="dynamic" class="w-full sm:col-span-2 is-textarea">
+              <mat-form-field
+                appearance="fill"
+                subscriptSizing="dynamic"
+                class="w-full sm:col-span-2 is-textarea"
+              >
                 <mat-label>Descripción</mat-label>
-                <textarea matInput formControlName="description" rows="3" placeholder="Detalle el motivo de la inspección..."></textarea>
+                <textarea
+                  matInput
+                  formControlName="description"
+                  rows="3"
+                  placeholder="Detalle el motivo de la inspección..."
+                ></textarea>
               </mat-form-field>
 
-              <mat-form-field appearance="fill" subscriptSizing="dynamic" class="w-full sm:col-span-2 is-textarea">
+              <mat-form-field
+                appearance="fill"
+                subscriptSizing="dynamic"
+                class="w-full sm:col-span-2 is-textarea"
+              >
                 <mat-label>Observaciones</mat-label>
-                <textarea matInput formControlName="notes" rows="3" placeholder="Notas adicionales (obligatorio)..."></textarea>
+                <textarea
+                  matInput
+                  formControlName="notes"
+                  rows="3"
+                  placeholder="Notas adicionales (obligatorio)..."
+                ></textarea>
               </mat-form-field>
             </div>
           </div>
         </div>
-
       </div>
     } @else if (currentStep() === 3) {
-      <div class="flex flex-col items-center justify-center h-full w-full bg-white flex-1 min-h-[500px]">
+      <div
+        class="flex flex-col items-center justify-center h-full w-full bg-white flex-1 min-h-[500px]"
+      >
         <div class="w-full max-w-md text-center">
-          <mat-icon class="!w-16 !h-16 text-[64px] text-primary-500 mb-6 animate-pulse">cloud_sync</mat-icon>
-          <h3 class="text-xl font-bold text-slate-800 mb-2">Creando inspección...</h3>
-          <p class="text-slate-500 text-sm mb-8">Por favor espera mientras guardamos los datos del formulario.</p>
+          <mat-icon class="!w-16 !h-16 text-[64px] text-primary-500 mb-6 animate-pulse"
+            >cloud_sync</mat-icon
+          >
+          <h3 class="text-xl font-bold text-slate-800 mb-2">
+            {{ isEditing() ? 'Actualizando datos...' : 'Creando inspección...' }}
+          </h3>
+          <p class="text-slate-500 text-sm mb-8">
+            {{
+              isEditing()
+                ? 'Por favor espera mientras guardamos los cambios de la inspección.'
+                : 'Por favor espera mientras guardamos los datos del formulario.'
+            }}
+          </p>
           <mat-progress-bar mode="indeterminate" class="rounded-full"></mat-progress-bar>
         </div>
       </div>
     } @else if (currentStep() === 4) {
-      <app-camera-upload 
-        class="h-full w-full block bg-white" 
-        (onCancel)="closeDialog()" 
-        (onFinish)="completeWizard($event)">
+      <app-camera-upload
+        class="h-full w-full block bg-white"
+        (onCancel)="closeDialog()"
+        (onFinish)="completeWizard($event)"
+      >
       </app-camera-upload>
     } @else if (currentStep() === 5) {
-      <div class="flex flex-col items-center justify-center h-full w-full bg-white flex-1 min-h-[500px]">
+      <div
+        class="flex flex-col items-center justify-center h-full w-full bg-white flex-1 min-h-[500px]"
+      >
         <div class="w-full max-w-md text-center">
-          <mat-icon class="!w-16 !h-16 text-[64px] text-primary-500 mb-6 animate-pulse">cloud_upload</mat-icon>
+          <mat-icon class="!w-16 !h-16 text-[64px] text-primary-500 mb-6 animate-pulse"
+            >cloud_upload</mat-icon
+          >
           <h3 class="text-xl font-bold text-slate-800 mb-2">Subiendo evidencia...</h3>
-          <p class="text-slate-500 text-sm mb-8">Por favor espera mientras subimos las fotos de la inspección.</p>
+          <p class="text-slate-500 text-sm mb-8">
+            Por favor espera mientras subimos las fotos de la inspección.
+          </p>
           <mat-progress-bar mode="indeterminate" class="rounded-full"></mat-progress-bar>
         </div>
       </div>
     } @else if (currentStep() === 6) {
-      <app-signature-upload 
-        class="h-full w-full block bg-white" 
-        (onCancel)="closeDialog()" 
-        (onFinish)="onSignatureFinish($event)">
+      <app-signature-upload
+        class="h-full w-full block bg-white"
+        (onCancel)="closeDialog()"
+        (onFinish)="onSignatureFinish($event)"
+      >
       </app-signature-upload>
     }
   </mat-dialog-content>
 
   @if (currentStep() < 3) {
-    <mat-dialog-actions class="!p-6 !m-0 border-t border-slate-100 bg-white flex justify-end gap-3 shrink-0">
-    @if (currentStep() === 2) {
-      <button mat-button class="text-slate-600 rounded-lg h-10 px-4" (click)="prevStep()">
-        <mat-icon class="mr-1 scale-90">arrow_back</mat-icon> Volver
-      </button>
-    }
+    <mat-dialog-actions
+      class="!p-6 !m-0 border-t border-slate-100 bg-white flex justify-end gap-3 shrink-0"
+    >
+      @if (currentStep() === 2) {
+        <button mat-button class="text-slate-600 rounded-lg h-10 px-4" (click)="prevStep()">
+          <mat-icon class="mr-1 scale-90">arrow_back</mat-icon> Volver
+        </button>
+      }
 
-    <button mat-stroked-button mat-dialog-close class="rounded-lg h-10 px-6 border-slate-300! text-slate-600!">
-      Cancelar
-    </button>
-    
-    @if (currentStep() === 1) {
-      <button mat-flat-button color="primary" class="rounded-lg h-10 px-6" 
-              [disabled]="!selectedVehicle() || !selectedInspectionType()" 
-              (click)="nextStep()">
-        Siguiente <mat-icon class="ml-1.5 scale-90">arrow_forward</mat-icon>
+      <button
+        mat-stroked-button
+        mat-dialog-close
+        class="rounded-lg h-10 px-6 border-slate-300! text-slate-600!"
+      >
+        Cancelar
       </button>
-    } @else {
-      <button mat-flat-button color="primary" class="rounded-lg h-10 px-6" [disabled]="inspectionForm.invalid" (click)="finishInspection()">
-        Siguiente <mat-icon class="ml-1.5 scale-90">arrow_forward</mat-icon>
-      </button>
-    }
-  </mat-dialog-actions>
+
+      @if (currentStep() === 1) {
+        <button
+          mat-flat-button
+          color="primary"
+          class="rounded-lg h-10 px-6"
+          [disabled]="!selectedVehicle() || !selectedInspectionType()"
+          (click)="nextStep()"
+        >
+          Siguiente <mat-icon class="ml-1.5 scale-90">arrow_forward</mat-icon>
+        </button>
+      } @else {
+        <button
+          mat-flat-button
+          color="primary"
+          class="rounded-lg h-10 px-6"
+          [disabled]="inspectionForm.invalid"
+          (click)="finishInspection()"
+        >
+          Siguiente <mat-icon class="ml-1.5 scale-90">arrow_forward</mat-icon>
+        </button>
+      }
+    </mat-dialog-actions>
   }
 </div>

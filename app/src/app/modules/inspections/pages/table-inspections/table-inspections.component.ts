@@ -298,28 +298,55 @@ export class TableInspectionsComponent implements OnInit {
       maxWidth: isXSmall ? '100vw' : '95vw',
       panelClass: 'custom-dialog-container',
       disableClose: true,
+      data: null,
     });
 
     dialogRef.afterClosed().subscribe((result) => {
-      // Reiniciamos el componente
-      this.isInitialLoading.set(true);
+      if (result) {
+        this.reloadTable();
+      }
+    });
+  }
 
-      // Limpiamos controles de filtros
-      this.ownerControl.setValue('');
-      this.vehicleControl.setValue('');
-      this.range.reset();
+  editInspection(row: Inspection) {
+    const isXSmall = this.breakpointObserver.isMatched(Breakpoints.XSmall);
+    const isSmall = this.breakpointObserver.isMatched(Breakpoints.Small);
+    const dialogWidth = isXSmall ? '100vw' : isSmall ? '95vw' : '1050px';
 
-      // Limpiamos IDs seleccionados
-      this.selectedOwnerId = null;
-      this.selectedVehicleId = null;
+    const dialogRef = this.dialog.open(DialogNewInspectionComponent, {
+      width: dialogWidth,
+      maxWidth: isXSmall ? '100vw' : '95vw',
+      panelClass: 'custom-dialog-container',
+      disableClose: true,
+      data: { inspectionId: row.id },
+    });
 
-      // Recargamos datos sin filtros
-      this.loadInspections({
-        owner: '',
-        vehicle_id: '',
-        initial_date: '',
-        final_date: '',
-      });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.reloadTable();
+      }
+    });
+  }
+
+  private reloadTable() {
+    // Reiniciamos el componente
+    this.isInitialLoading.set(true);
+
+    // Limpiamos controles de filtros
+    this.ownerControl.setValue('');
+    this.vehicleControl.setValue('');
+    this.range.reset();
+
+    // Limpiamos IDs seleccionados
+    this.selectedOwnerId = null;
+    this.selectedVehicleId = null;
+
+    // Recargamos datos sin filtros
+    this.loadInspections({
+      owner: '',
+      vehicle_id: '',
+      initial_date: '',
+      final_date: '',
     });
   }
 
@@ -340,7 +367,7 @@ export class TableInspectionsComponent implements OnInit {
     const isSmall = this.breakpointObserver.isMatched(Breakpoints.Small);
     const dialogWidth = isXSmall ? '100vw' : isSmall ? '95vw' : '900px';
 
-    this.dialog.open(DetailsDialogComponent, {
+    const dialogRef = this.dialog.open(DetailsDialogComponent, {
       width: dialogWidth,
       maxWidth: isXSmall ? '100vw' : '95vw',
       maxHeight: '95vh',
@@ -350,6 +377,12 @@ export class TableInspectionsComponent implements OnInit {
         photos: row.photos,
         signature: row.signature,
       },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === 'edit') {
+        this.editInspection(row);
+      }
     });
   }
 }

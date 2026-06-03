@@ -1,5 +1,5 @@
-import { Component, computed, signal, inject, OnInit } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
+import { Component, computed, signal, inject, OnInit, Inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Vehicle } from '../../interfaces/vehicles.interface';
 import { ApiService } from '../../../../core/services/api.service';
@@ -35,16 +35,20 @@ export class DialogNewInspectionComponent implements OnInit {
 
   // Formulario de inspección (Paso 2)
   inspectionForm = new FormGroup({
-    mileage: new FormControl<number | null>(null, [Validators.required, Validators.min(0)]),
+    mileage: new FormControl<number | null>(null, [Validators.min(0)]),
     gps_serial: new FormControl<string>('', [Validators.required]),
     celular_number: new FormControl<string>('', [Validators.required]),
     celular_serial: new FormControl<string>('', [Validators.required]),
     description: new FormControl<string>('', [Validators.required]),
-    notes: new FormControl<string>('', [Validators.required]),
+    notes: new FormControl<string>(''),
   });
 
-  // ID de la inspección creada
+  // ID de la inspección creada/editada
   inspectionId = signal<number | null>(null);
+  isEditing = signal<boolean>(false);
+  dataSaved = signal<boolean>(false);
+
+  // ... (rest of signals/computed unchanged)
 
   // COMPUTED: Filtrado Local Ultra-Rápido con Protección de DOM
   filteredVehicles = computed(() => {
@@ -90,7 +94,7 @@ export class DialogNewInspectionComponent implements OnInit {
         return date.toLocaleDateString('es-ES', {
           year: 'numeric',
           month: '2-digit',
-          day: '2-digit'
+          day: '2-digit',
         });
       } catch {
         return 'N/A';
@@ -113,15 +117,71 @@ export class DialogNewInspectionComponent implements OnInit {
       { label: 'Estado', value: formatValue(vehicle.status), icon: 'info' },
       { label: 'Cuota Admon', value: formatValue(vehicle.cuo_admon), icon: 'monetization_on' },
       { label: 'IVA', value: formatValue(vehicle.iva), icon: 'receipt' },
-      { label: 'Prendido/Apagado', value: formatValue(vehicle.prend_apag), icon: 'power_settings_new' },
+      {
+        label: 'Prendido/Apagado',
+        value: formatValue(vehicle.prend_apag),
+        icon: 'power_settings_new',
+      },
     ];
   });
 
-  constructor(public dialogRef: MatDialogRef<DialogNewInspectionComponent>) {}
+  constructor(
+    public dialogRef: MatDialogRef<DialogNewInspectionComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: { inspectionId?: number } | null,
+  ) {}
 
   ngOnInit(): void {
-    this.loadVehicles();
+    if (this.data && this.data.inspectionId) {
+      this.isEditing.set(true);
+      this.inspectionId.set(this.data.inspectionId);
+      this.loadInspectionDetails(this.data.inspectionId);
+    } else {
+      this.loadVehicles();
+    }
     this.loadInspectionTypes();
+  }
+
+  loadInspectionDetails(id: number) {
+    this.isLoadingVehicles.set(true);
+    this.apiService.get<any>(`/inspections/details/${id}/`).subscribe({
+      next: (res) => {
+        if (res) {
+          // Mapeamos los datos de la inspección al formato del vehículo y formulario
+          const mockVehicle: Vehicle = {
+            id: res.vehicle_id,
+            plate: res.plate,
+            owner_name: res.owner_name,
+            owner_id: res.owner,
+            brand: 'Cargando...', // Estos se actualizarán con selectVehicle
+            model: '',
+          };
+
+          this.selectVehicle(mockVehicle);
+          this.selectedInspectionType.set(
+            res.inspection_type.split(' - ')[1] || res.inspection_type,
+          );
+
+          this.inspectionForm.patchValue({
+            mileage: Number(res.mileage),
+            gps_serial: res.gps_serial,
+            celular_number: res.celular_number,
+            celular_serial: res.celular_serial,
+            description: res.description,
+            notes: res.notes,
+          });
+
+          // En modo edición, mostramos el Paso 1 para permitir cambiar el tipo de inspección
+          // pero manteniendo el vehículo bloqueado.
+          this.currentStep.set(1);
+          this.isLoadingVehicles.set(false);
+        }
+      },
+      error: (err) => {
+        console.error('Error loading inspection details for edit:', err);
+        this.isLoadingVehicles.set(false);
+        this.snackbarService.openSnackBar('Error al cargar los detalles de la inspección.');
+      },
+    });
   }
 
   loadVehicles() {
@@ -140,14 +200,16 @@ export class DialogNewInspectionComponent implements OnInit {
   }
 
   loadInspectionTypes() {
-    this.apiService.get<{ id: number; name: string }[]>('/inspections/inspections-types/').subscribe({
-      next: (data) => {
-        this.inspectionTypes.set(data || []);
-      },
-      error: (error) => {
-        console.error('Error loading inspection types:', error);
-      }
-    });
+    this.apiService
+      .get<{ id: number; name: string }[]>('/inspections/inspections-types/')
+      .subscribe({
+        next: (data) => {
+          this.inspectionTypes.set(data || []);
+        },
+        error: (error) => {
+          console.error('Error loading inspection types:', error);
+        },
+      });
   }
 
   onSearch(event: Event) {
@@ -161,7 +223,7 @@ export class DialogNewInspectionComponent implements OnInit {
 
   selectVehicle(vehicle: Vehicle) {
     this.selectedVehicle.set(vehicle);
-    
+
     // Buscar info detallada por placa
     this.apiService.post<Vehicle>(`/vehicles/info/?vehicle_plate=${vehicle.plate}`, {}).subscribe({
       next: (fullInfo) => {
@@ -172,7 +234,7 @@ export class DialogNewInspectionComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading vehicle details:', error);
-      }
+      },
     });
 
     // Opcional: Limpiar búsqueda al seleccionar
@@ -188,7 +250,7 @@ export class DialogNewInspectionComponent implements OnInit {
   }
 
   closeDialog() {
-    this.dialogRef.close();
+    this.dialogRef.close(this.dataSaved());
   }
 
   nextStep() {
@@ -215,7 +277,9 @@ export class DialogNewInspectionComponent implements OnInit {
     const vehicle = this.selectedVehicle()!;
     const formValue = this.inspectionForm.value;
 
-    const matchedType = this.inspectionTypes().find(t => t.name === this.selectedInspectionType());
+    const matchedType = this.inspectionTypes().find(
+      (t) => t.name === this.selectedInspectionType(),
+    );
     const inspection_type_id = matchedType ? String(matchedType.id) : '';
 
     const payload = {
@@ -230,21 +294,39 @@ export class DialogNewInspectionComponent implements OnInit {
       instalation_type: this.selectedInspectionType() || '',
     };
 
-    this.apiService.post<{ id: number }>('/inspections/create-inspection/', payload).subscribe({
-      next: (res) => {
-        if (res && res.id) {
-          this.inspectionId.set(res.id);
-          this.snackbarService.openSnackBar('Se ha creado la inspección correctamente.');
-          this.currentStep.set(4); // Avanzamos al Paso 4 (Cámara)
-        }
-      },
-      error: (error) => {
-        console.error('Error creating inspection:', error);
-        this.snackbarService.openSnackBar('Ha ocurrido un error al crear la inspección.');
-        // Si hay un error, volvemos al Paso 2 para permitir correcciones/reintentos
-        this.currentStep.set(2);
-      }
-    });
+    if (this.isEditing()) {
+      this.apiService
+        .put<{ message: string }>(`/inspections/update/${this.inspectionId()}/`, payload)
+        .subscribe({
+          next: (res) => {
+            this.snackbarService.openSnackBar('Se ha actualizado la inspección correctamente.');
+            this.dataSaved.set(true);
+            // Después de editar, según el requerimiento, podríamos ir a fotos/firma o cerrar.
+            this.currentStep.set(4);
+          },
+          error: (error) => {
+            console.error('Error updating inspection:', error);
+            this.snackbarService.openSnackBar('Ha ocurrido un error al actualizar la inspección.');
+            this.currentStep.set(2);
+          },
+        });
+    } else {
+      this.apiService.post<{ id: number }>('/inspections/create-inspection/', payload).subscribe({
+        next: (res) => {
+          if (res && res.id) {
+            this.inspectionId.set(res.id);
+            this.snackbarService.openSnackBar('Se ha creado la inspección correctamente.');
+            this.currentStep.set(4); // Avanzamos al Paso 4 (Cámara)
+          }
+        },
+        error: (error) => {
+          console.error('Error creating inspection:', error);
+          this.snackbarService.openSnackBar('Ha ocurrido un error al crear la inspección.');
+          // Si hay un error, volvemos al Paso 2 para permitir correcciones/reintentos
+          this.currentStep.set(2);
+        },
+      });
+    }
   }
 
   // Se llama cuando la cámara termina de capturar
@@ -269,20 +351,24 @@ export class DialogNewInspectionComponent implements OnInit {
 
     // Llamamos al endpoint de cargar imágenes
     const id = this.inspectionId()!;
-    this.apiService.postFormData<{ message: string }>(`/inspections/upload-images/${id}/`, formData).subscribe({
-      next: (res) => {
-        console.log('Images uploaded successfully:', res.message);
-        this.snackbarService.openSnackBar('Se han subido las fotos correctamente. ¡Inspección finalizada!');
-        // Avanzamos al Paso 6 (Firma)
-        this.currentStep.set(6);
-      },
-      error: (error) => {
-        console.error('Error uploading images:', error);
-        this.snackbarService.openSnackBar('Ha ocurrido un error al subir las fotos.');
-        // Si hay error, regresamos al Paso 4 (Cámara) para que intente de nuevo
-        this.currentStep.set(4);
-      }
-    });
+    this.apiService
+      .postFormData<{ message: string }>(`/inspections/upload-images/${id}/`, formData)
+      .subscribe({
+        next: (res) => {
+          console.log('Images uploaded successfully:', res.message);
+          this.snackbarService.openSnackBar(
+            'Se han subido las fotos correctamente. ¡Inspección finalizada!',
+          );
+          // Avanzamos al Paso 6 (Firma)
+          this.currentStep.set(6);
+        },
+        error: (error) => {
+          console.error('Error uploading images:', error);
+          this.snackbarService.openSnackBar('Ha ocurrido un error al subir las fotos.');
+          // Si hay error, regresamos al Paso 4 (Cámara) para que intente de nuevo
+          this.currentStep.set(4);
+        },
+      });
   }
 
   // Helper para convertir Base64 Data URL en un objeto File
@@ -308,16 +394,18 @@ export class DialogNewInspectionComponent implements OnInit {
     formData.append('signature', file);
 
     const id = this.inspectionId()!;
-    this.apiService.postFormData<{ message: string }>(`/inspections/upload-signature/${id}/`, formData).subscribe({
-      next: (res) => {
-        console.log('Signature uploaded successfully:', res.message);
-        this.snackbarService.openSnackBar('Se ha subido la firma correctamente.');
-        this.dialogRef.close(true); // Cerramos el modal grande definitivamente
-      },
-      error: (error) => {
-        console.error('Error uploading signature:', error);
-        this.snackbarService.openSnackBar('Ha ocurrido un error al subir la firma.');
-      }
-    });
+    this.apiService
+      .postFormData<{ message: string }>(`/inspections/upload-signature/${id}/`, formData)
+      .subscribe({
+        next: (res) => {
+          console.log('Signature uploaded successfully:', res.message);
+          this.snackbarService.openSnackBar('Se ha subido la firma correctamente.');
+          this.dialogRef.close(true); // Cerramos el modal grande definitivamente con true (se guardó algo)
+        },
+        error: (error) => {
+          console.error('Error uploading signature:', error);
+          this.snackbarService.openSnackBar('Ha ocurrido un error al subir la firma.');
+        },
+      });
   }
 }

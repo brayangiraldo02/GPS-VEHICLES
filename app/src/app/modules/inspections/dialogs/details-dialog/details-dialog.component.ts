@@ -86,6 +86,8 @@ export class DetailsDialogComponent implements OnInit {
       this.viewPhotos();
     } else if (action === 'viewSignature') {
       this.viewSignature();
+    } else if (action === 'edit') {
+      this.dialogRef.close('edit');
     } else {
       this.dialogRef.close();
     }
