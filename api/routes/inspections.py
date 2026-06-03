@@ -30,3 +30,7 @@ async def post_list_inspections(data: InspectionInfo, db: Session = Depends(get_
 @inspections_router.get('/details/{inspection_id}/', tags=["Inspections"])
 async def get_inspection_details(inspection_id: int, db: Session = Depends(get_db)):
   return await inspection_details(inspection_id, db)
+
+@inspections_router.put('/update/{inspection_id}/', tags=["Inspections"])
+async def put_update_inspection(inspection_id: int, data: NewInspection, db: Session = Depends(get_db)):
+  return await update_inspection(inspection_id, data, db)

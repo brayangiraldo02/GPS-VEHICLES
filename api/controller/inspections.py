@@ -330,3 +330,35 @@ async def inspection_details(inspection_id: int, db: Session):
     return JSONResponse(content=jsonable_encoder(inspection_data), status_code=200)
   except Exception as e:
     return JSONResponse(content={"message": str(e)}, status_code=500)
+
+# ---------------------------------------------------------------------------------------------------------------
+
+async def update_inspection(inspection_id: int, data: NewInspection, db: Session):
+  try:
+    inspection = db.query(Inspecciones).filter(Inspecciones.ID == inspection_id).first()
+    if not inspection:
+      return JSONResponse(content={"message": "Inspection not found"}, status_code=404)
+
+    if inspection.ESTADO != "PEN":
+      return JSONResponse(content={"message": "Only inspections in PENDING status can be edited."}, status_code=400)
+
+    inspection_type = db.query(TiposInspeccion).filter(TiposInspeccion.ID == data.inspection_type_id).first()
+    if not inspection_type:
+      return JSONResponse(content={"message": "Inspection type not found"}, status_code=404)
+
+    inspection.TIPO_INSPEC = inspection_type.ID
+    inspection.NOMINSPEC = inspection_type.NOMBRE
+    inspection.TIPO_INSTALACION = data.instalation_type
+    inspection.KILOMETRAJ = data.mileage
+    inspection.GPS_SERIAL = data.gps_serial
+    inspection.CEL_NUMERO = data.celular_number
+    inspection.CEL_SERIAL = data.celular_serial
+    inspection.DESCRIPCION = data.description
+    inspection.OBSERVA = data.notes if data.notes else ""
+
+    db.commit()
+
+    return JSONResponse(content={"message": "Inspection updated successfully"}, status_code=200)
+  except Exception as e:
+    db.rollback()
+    return JSONResponse(content={"message": str(e)}, status_code=500)
