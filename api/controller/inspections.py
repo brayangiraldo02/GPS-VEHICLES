@@ -299,7 +299,7 @@ async def inspection_details(inspection_id: int, db: Session):
       photo_field = f"FOTO{i:02d}"
       photo_value = getattr(inspection, photo_field, "")
       if photo_value and photo_value.strip(): 
-        photo_url = f"{route_api}uploads/vehiculos/{photo_value}"
+        photo_url = f"{route_api}uploads/vehicles/{photo_value}"
         photos.append(photo_url)
 
     user = db.query(Usuarios).filter(Usuarios.ID == str(inspection.USUARIO)).first()
