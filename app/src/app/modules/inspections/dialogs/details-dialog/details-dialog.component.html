@@ -1,0 +1,357 @@
+<div
+  class="flex flex-col h-[90vh] md:h-[750px] w-full md:w-[900px] max-w-full overflow-hidden bg-white"
+>
+  <!-- CABECERA DEL DIALOG -->
+  <div
+    class="flex items-center justify-between border-b border-slate-100 p-6 pb-4 shrink-0 bg-white z-20"
+  >
+    <div>
+      <h2 class="text-2xl font-bold text-slate-800 tracking-tight">Detalles de Inspección</h2>
+      <p class="text-slate-500 text-sm">Resumen completo de los datos registrados</p>
+    </div>
+    <button
+      mat-icon-button
+      (click)="closeDialog()"
+      class="text-slate-400 hover:bg-slate-50 rounded-lg transition-colors"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <mat-dialog-content
+    class="!p-0 flex-1 overflow-hidden flex flex-col bg-slate-50/50 relative !max-h-none w-full"
+  >
+    <!-- ESTADO DE CARGA -->
+    @if (isLoading()) {
+      <div class="flex-1 flex flex-col items-center justify-center bg-white flex-1 min-h-[500px]">
+        <div class="w-full max-w-md text-center">
+          <mat-icon class="!w-16 !h-16 text-[64px] text-primary-500 mb-6 animate-pulse"
+            >cloud_sync</mat-icon
+          >
+          <h3 class="text-xl font-bold text-slate-800 mb-2">Cargando detalles...</h3>
+          <p class="text-slate-500 text-sm mb-8">
+            Por favor espera mientras obtenemos la información de la inspección.
+          </p>
+          <mat-progress-bar mode="indeterminate" class="rounded-full"></mat-progress-bar>
+        </div>
+      </div>
+    } @else if (inspectionData()) {
+      <!-- CONTENIDO DEL DIALOG (Scrollable) -->
+      <div class="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+        <!-- ========================================== -->
+        <!-- 1. INFORMACIÓN GENERAL Y ESTADO            -->
+        <!-- ========================================== -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div
+            class="px-5 py-3.5 border-b border-slate-100 bg-slate-50/80 flex items-center gap-2.5"
+          >
+            <div
+              class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center"
+            >
+              <mat-icon class="scale-75">info</mat-icon>
+            </div>
+            <h3 class="font-bold text-slate-800">Información General</h3>
+
+            <!-- Badge de Estado a la derecha -->
+            <div class="ml-auto">
+              <span
+                class="px-3 py-1 rounded-full text-xs font-bold border"
+                [ngClass]="{
+                  'bg-amber-100 text-amber-700 border-amber-200':
+                    inspectionData()?.status === 'PEN',
+                  'bg-emerald-100 text-emerald-700 border-emerald-200':
+                    inspectionData()?.status === 'FIN',
+                  'bg-rose-100 text-rose-700 border-rose-200': inspectionData()?.status === 'SUS',
+                }"
+              >
+                {{ getStatusText(inspectionData()?.status) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-y-5 gap-x-6">
+            <div>
+              <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                >ID Inspección</span
+              >
+              <span class="block text-sm font-semibold text-slate-800"
+                >#{{ inspectionData()?.id }}</span
+              >
+            </div>
+            <div>
+              <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                >Empresa</span
+              >
+              <span class="block text-sm font-semibold text-slate-800">{{
+                inspectionData()?.owner_name
+              }}</span>
+            </div>
+            <div>
+              <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                >Fecha y Hora</span
+              >
+              <span class="block text-sm font-semibold text-slate-800"
+                >{{ inspectionData()?.date }} {{ inspectionData()?.time }}</span
+              >
+            </div>
+            <div>
+              <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                >Usuario / Inspector</span
+              >
+              <span class="block text-sm font-semibold text-slate-800">{{
+                inspectionData()?.user || 'N/A'
+              }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 2. GRID DOBLE: PROPIETARIO Y CONDUCTOR     -->
+        <!-- ========================================== -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Tarjeta Propietario -->
+          <div
+            class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col"
+          >
+            <div class="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2.5">
+              <mat-icon class="text-slate-400">person</mat-icon>
+              <h3 class="font-bold text-slate-800">Propietario</h3>
+            </div>
+            <div class="p-5 flex-1 grid grid-cols-2 gap-4">
+              <div>
+                <span
+                  class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                  >Código</span
+                >
+                <span class="block text-sm font-semibold text-slate-800">{{
+                  getOwnerCode(inspectionData()?.owner)
+                }}</span>
+              </div>
+              <div>
+                <span
+                  class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                  >Nombre</span
+                >
+                <span class="block text-sm font-semibold text-slate-800">{{
+                  inspectionData()?.owner_name
+                }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tarjeta Conductor (Mostrando info disponible o placeholders) -->
+          <div
+            class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col"
+          >
+            <div class="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2.5">
+              <mat-icon class="text-slate-400">badge</mat-icon>
+              <h3 class="font-bold text-slate-800">Conductor</h3>
+            </div>
+            <div class="p-5 flex-1 grid grid-cols-2 gap-4">
+              <div>
+                <span
+                  class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                  >Cédula / Código</span
+                >
+                <span class="block text-sm font-semibold text-slate-800">N/A</span>
+              </div>
+              <div>
+                <span
+                  class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                  >Nombre Completo</span
+                >
+                <span class="block text-sm font-semibold text-slate-800">N/A</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 3. VEHÍCULO                                -->
+        <!-- ========================================== -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2.5">
+            <mat-icon class="text-slate-400">directions_car</mat-icon>
+            <h3 class="font-bold text-slate-800">Datos del Vehículo</h3>
+          </div>
+          <div class="p-5 grid grid-cols-2 sm:grid-cols-3 gap-y-5 gap-x-6">
+            <div>
+              <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                >Unidad</span
+              >
+              <span class="block text-sm font-semibold text-slate-800">{{
+                inspectionData()?.vehicle_id
+              }}</span>
+            </div>
+            <div>
+              <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                >Placa</span
+              >
+              <span
+                class="inline-block bg-slate-100 border border-slate-200 px-2 py-0.5 rounded text-xs font-mono font-bold text-slate-700"
+                >{{ inspectionData()?.plate }}</span
+              >
+            </div>
+            <div>
+              <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                >Estado Vehículo</span
+              >
+              <span class="block text-sm font-semibold text-slate-800">{{
+                inspectionData()?.vehicle_status || 'N/A'
+              }}</span>
+            </div>
+            <div>
+              <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                >Kilometraje</span
+              >
+              <span class="block text-sm font-semibold text-slate-800"
+                >{{ inspectionData()?.mileage || '0' }}
+                <span class="text-slate-500 font-normal">km</span></span
+              >
+            </div>
+            <div>
+              <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                >Serial GPS</span
+              >
+              <span class="block text-sm font-semibold text-slate-800">{{
+                inspectionData()?.gps_serial || 'N/A'
+              }}</span>
+            </div>
+            <div>
+              <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                >Serial Celular</span
+              >
+              <span class="block text-sm font-semibold text-slate-800">{{
+                inspectionData()?.celular_serial || 'N/A'
+              }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 4. DETALLES TÉCNICOS                       -->
+        <!-- ========================================== -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="px-5 py-3.5 border-b border-slate-100 flex items-center gap-2.5">
+            <mat-icon class="text-slate-400">fact_check</mat-icon>
+            <h3 class="font-bold text-slate-800">Detalles y Revisión Técnica</h3>
+          </div>
+
+          <div class="p-5">
+            <!-- Textos descriptivos principales -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+              <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <span
+                  class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                  >Tipo de Inspección</span
+                >
+                <span class="block text-sm font-semibold text-primary-700">{{
+                  inspectionData()?.inspection_type
+                }}</span>
+              </div>
+              <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <span
+                  class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                  >Usuario Asignado</span
+                >
+                <span class="block text-sm font-semibold text-slate-800">{{
+                  inspectionData()?.user
+                }}</span>
+              </div>
+
+              <div class="md:col-span-2">
+                <span
+                  class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                  >Descripción / Motivo</span
+                >
+                <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                  {{ inspectionData()?.description || 'Sin descripción.' }}
+                </p>
+              </div>
+
+              <div class="md:col-span-2">
+                <span
+                  class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1"
+                  >Observaciones Extras</span
+                >
+                <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap italic">
+                  {{ inspectionData()?.notes || 'Sin observaciones.' }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- 5. ADJUNTOS (Fotos y Firma)                -->
+        <!-- ========================================== -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <!-- Tarjeta de Fotos -->
+          @if (data.photos && data.photos.length > 0) {
+            <div
+              class="bg-indigo-50 border border-indigo-100 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4"
+            >
+              <div class="flex items-center gap-3 text-indigo-900">
+                <div
+                  class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm"
+                >
+                  <mat-icon class="text-indigo-500">photo_library</mat-icon>
+                </div>
+                <div>
+                  <h4 class="font-bold text-base leading-tight">Fotografías</h4>
+                  <p class="text-indigo-600 text-xs font-medium">
+                    {{ data.photos.length }} capturas adjuntas
+                  </p>
+                </div>
+              </div>
+              <button
+                mat-flat-button
+                class="bg-indigo-600! text-white! rounded-lg w-full sm:w-auto"
+                (click)="closeDialog('viewPhotos')"
+              >
+                <mat-icon class="scale-90 mr-1">visibility</mat-icon> Ver Fotos
+              </button>
+            </div>
+          }
+
+          <!-- Tarjeta de Firma -->
+          @if (data.signature && data.signature.length > 0 && data.signature[0]) {
+            <div
+              class="bg-slate-800 border border-slate-700 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4"
+            >
+              <div class="flex items-center gap-3 text-white">
+                <div
+                  class="w-12 h-12 bg-slate-700 rounded-xl flex items-center justify-center shadow-sm"
+                >
+                  <mat-icon class="text-slate-300">draw</mat-icon>
+                </div>
+                <div>
+                  <h4 class="font-bold text-base leading-tight">Firma Digital</h4>
+                  <p class="text-slate-400 text-xs font-medium">Conductor / Autorizado</p>
+                </div>
+              </div>
+              <button
+                mat-flat-button
+                class="bg-white! text-slate-800! rounded-lg w-full sm:w-auto"
+                (click)="closeDialog('viewSignature')"
+              >
+                <mat-icon class="scale-90 mr-1">visibility</mat-icon> Ver Firma
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </mat-dialog-content>
+
+  <!-- FOOTER -->
+  <mat-dialog-actions class="!p-6 border-t border-slate-100 bg-white flex justify-end shrink-0">
+    <button
+      mat-stroked-button
+      (click)="closeDialog()"
+      class="rounded-lg h-10 border-slate-300! text-slate-600! px-6"
+    >
+      Cerrar Resumen
+    </button>
+  </mat-dialog-actions>
+</div>

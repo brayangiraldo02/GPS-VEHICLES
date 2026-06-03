@@ -1,4 +1,13 @@
-import { Component, effect, HostListener, signal, viewChild, inject, OnInit, computed } from '@angular/core';
+import {
+  Component,
+  effect,
+  HostListener,
+  signal,
+  viewChild,
+  inject,
+  OnInit,
+  computed,
+} from '@angular/core';
 import { Inspection } from '../../interfaces/inspections.interface';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -16,6 +25,8 @@ import { toObservable } from '@angular/core/rxjs-interop';
 import { Vehicle } from '../../interfaces/vehicles.interface';
 
 import { MatOptionSelectionChange } from '@angular/material/core';
+
+import { DetailsDialogComponent } from '../../dialogs/details-dialog/details-dialog.component';
 
 @Component({
   selector: 'app-table-inspections',
@@ -64,7 +75,7 @@ export class TableInspectionsComponent implements OnInit {
     map(([owners, filterValue]) => {
       const filterStr = (filterValue || '').toLowerCase();
       return owners.filter((owner) => (owner.name || '').toLowerCase().includes(filterStr));
-    })
+    }),
   );
 
   // Autocomplete Vehículos
@@ -83,9 +94,9 @@ export class TableInspectionsComponent implements OnInit {
         (v) =>
           (v.plate || '').toLowerCase().includes(filterStr) ||
           (v.brand || '').toLowerCase().includes(filterStr) ||
-          (v.id || '').toLowerCase().includes(filterStr)
+          (v.id || '').toLowerCase().includes(filterStr),
       );
-    })
+    }),
   );
 
   // Rango de Fechas
@@ -174,7 +185,7 @@ export class TableInspectionsComponent implements OnInit {
         finalize(() => {
           this.isLoading.set(false);
           this.isInitialLoading.set(false);
-        })
+        }),
       )
       .subscribe({
         next: (data) => {
@@ -292,12 +303,12 @@ export class TableInspectionsComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result) => {
       // Reiniciamos el componente
       this.isInitialLoading.set(true);
-      
+
       // Limpiamos controles de filtros
       this.ownerControl.setValue('');
       this.vehicleControl.setValue('');
       this.range.reset();
-      
+
       // Limpiamos IDs seleccionados
       this.selectedOwnerId = null;
       this.selectedVehicleId = null;
@@ -320,6 +331,24 @@ export class TableInspectionsComponent implements OnInit {
       data: {
         photos: row.photos,
         canDelete: false,
+      },
+    });
+  }
+
+  viewDetails(row: Inspection) {
+    const isXSmall = this.breakpointObserver.isMatched(Breakpoints.XSmall);
+    const isSmall = this.breakpointObserver.isMatched(Breakpoints.Small);
+    const dialogWidth = isXSmall ? '100vw' : isSmall ? '95vw' : '900px';
+
+    this.dialog.open(DetailsDialogComponent, {
+      width: dialogWidth,
+      maxWidth: isXSmall ? '100vw' : '95vw',
+      maxHeight: '95vh',
+      panelClass: 'custom-dialog-container',
+      data: {
+        id: row.id,
+        photos: row.photos,
+        signature: row.signature,
       },
     });
   }
