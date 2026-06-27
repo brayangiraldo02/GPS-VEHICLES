@@ -1,6 +1,8 @@
-from fastapi.responses import JSONResponse
+import uuid
+
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.encoders import jsonable_encoder
-from fastapi import UploadFile, File
+from fastapi import UploadFile, File, BackgroundTasks
 from typing import List
 from sqlalchemy.orm import Session
 from models.tiposinspeccion import TiposInspeccion
@@ -12,15 +14,21 @@ from models.estados import Estados
 from schemas.inspections import NewInspection, InspectionInfo
 from utils.inspections import update_expired_inspections
 from datetime import datetime, timedelta
+from concurrent.futures import ThreadPoolExecutor
+from utils.pdf import html2pdf
 import pytz
 import os
 import shutil
+import jinja2
+import asyncio
+import tempfile
 from dotenv import load_dotenv
 
 load_dotenv()
 
 upload_directory = os.getenv('DIRECTORY_DOC')
 route_api = os.getenv('ROUTE_API')
+PDF_THREAD_POOL = ThreadPoolExecutor(max_workers=2)
 
 # ---------------------------------------------------------------------------------------------------------------
 
@@ -361,4 +369,125 @@ async def update_inspection(inspection_id: int, data: NewInspection, db: Session
     return JSONResponse(content={"message": "Inspection updated successfully"}, status_code=200)
   except Exception as e:
     db.rollback()
+    return JSONResponse(content={"message": str(e)}, status_code=500)
+
+# ---------------------------------------------------------------------------------------------------------------
+
+async def inspection_report(inspection_id: int, db: Session, current_user: dict):
+  try:
+    inspection = db.query(Inspecciones).filter(Inspecciones.ID == inspection_id).first()
+    if not inspection:
+      return JSONResponse(content={"message": "Inspection not found"}, status_code=404)
+    
+    inspection_type = db.query(TiposInspeccion).filter(TiposInspeccion.ID == inspection.TIPO_INSPEC).first()
+
+    vehicle = db.query(Vehiculos).filter(Vehiculos.ID == inspection.ID_VEHICULO).first()
+
+    status = db.query(Estados).filter(Estados.ID == vehicle.ID_ESTADO).first()
+    vehicle_status = status.ID + ' - ' + status.NOMBRE if status else ''
+
+    user_id = current_user.get("codigo")
+    user_name = db.query(Usuarios).filter(Usuarios.ID == user_id).first()
+
+    photos = []
+    for i in range(1, 9): 
+      photo_field = f"FOTO{i:02d}"
+      photo_value = getattr(inspection, photo_field, "")
+      if photo_value and photo_value.strip(): 
+        photo_url = f"{route_api}uploads/vehicles/{photo_value}"
+        photos.append(photo_url)
+
+    signature_url = f"{route_api}uploads/vehicles/{inspection.FIRMA}" if inspection.FIRMA and inspection.FIRMA.strip() else ''
+    
+    inspection_data = {
+      "id": inspection.ID,
+      "date": inspection.FECHA.strftime('%d-%m-%Y') if inspection.FECHA else None,
+      "hour": inspection.HORA.strftime('%H:%M') if inspection.HORA else None,
+      "owner": inspection.PROPIETARIO,
+      "owner_name": inspection.NOMPROPI,
+      "inspection_type": inspection.TIPO_INSPEC + ' - ' + inspection_type.NOMBRE if inspection_type else "",
+      "instalation_type": inspection.TIPO_INSTALACION,
+      "vehicle_id": inspection.ID_VEHICULO,
+      "plate": vehicle.PLACA,
+      "vehicle_status": vehicle_status,
+      "mileage": inspection.KILOMETRAJ if inspection.KILOMETRAJ else "",
+      "gps_serial": inspection.GPS_SERIAL if inspection.GPS_SERIAL else "",
+      "celular_number": inspection.CEL_NUMERO if inspection.CEL_NUMERO else "",
+      "celular_serial": inspection.CEL_SERIAL if inspection.CEL_SERIAL else "",
+      "description": inspection.DESCRIPCION,
+      "notes": inspection.OBSERVA if inspection.OBSERVA else "",
+      "status": inspection.ESTADO,
+      "inspection_user": inspection.NOMUSUARIO if inspection.NOMUSUARIO else "",
+      "photos": photos if photos else [],
+      "signature": signature_url if signature_url else "",
+    }
+
+    panama_timezone = pytz.timezone('America/Panama')
+    now_in_panama = datetime.now(panama_timezone)
+    date = now_in_panama.strftime("%d/%m/%Y")
+    hour = now_in_panama.strftime("%I:%M:%S %p")
+
+    title = 'Inspección de Vehículo'
+    data_view = {
+      'inspection': inspection_data,
+      'date': date,
+      'hour': hour,
+      'user': user_name.NOMBRE if user_name else "",
+      'title': title
+    }
+
+    headers = {
+      "Content-Disposition": "attachment; filename=inspeccion.pdf"
+    }
+
+    template_loader = jinja2.FileSystemLoader(searchpath="./templates")
+    template_env = jinja2.Environment(loader=template_loader)
+    header_file = "header.html"
+    footer_file = "footer.html"
+    template = template_env.get_template("inspection_report.html")
+    header = template_env.get_template(header_file)
+    footer = template_env.get_template(footer_file)
+    output_text = template.render(data_view=data_view)
+    output_header = header.render(data_view=data_view)
+    output_footer = footer.render(data_view=data_view)
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w') as html_file:
+      html_path = html_file.name
+      html_file.write(output_text)
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w') as header_file:
+      header_path = header_file.name
+      header_file.write(output_header)
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w') as footer_file:
+      footer_path = footer_file.name
+      footer_file.write(output_footer)
+
+      date_str = now_in_panama.strftime("%Y%m%d")
+      short_uuid = uuid.uuid4().hex[:8]
+      pdf_filename = f"{vehicle.PLACA}_{date_str}_{short_uuid}.pdf"
+      pdf_path = os.path.join(tempfile.gettempdir(), pdf_filename)
+      pdf_path = pdf_path.replace("\\", "/")
+
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(
+      PDF_THREAD_POOL,
+      html2pdf,
+      title,
+      html_path,
+      pdf_path,
+      header_path,
+      footer_path
+    )
+
+    background_tasks = BackgroundTasks()
+    background_tasks.add_task(os.remove, html_path)
+    background_tasks.add_task(os.remove, header_path)
+    background_tasks.add_task(os.remove, footer_path)
+
+    return JSONResponse(
+        content={"inspection_pdf": pdf_path}, 
+        status_code=200,
+        background=background_tasks
+    )
+
+  except Exception as e:
     return JSONResponse(content={"message": str(e)}, status_code=500)

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Inspección</title>
+    <style>
+      body {
+        font-family: 'Inter', 'Segoe UI', sans-serif;
+        margin: 0;
+        padding: 32px 40px;
+        line-height: 1.5;
+        color: #1a1a1a;
+        background: #fff;
+        font-size: 14px;
+      }
+
+      .doc-header {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 20px;
+      }
+
+      .box {
+        border: 1px solid #ccc;
+        padding: 8px 14px;
+        font-size: 12px;
+        line-height: 1.8;
+        text-align: left;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
+
+      .box dt {
+        display: inline;
+        color: #888;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.4px;
+      }
+
+      .box dt::after {
+        content: ': ';
+      }
+ 
+      .box dd {
+        display: inline;
+        margin: 0;
+        font-weight: 500;
+        color: #1a1a1a;
+      }
+ 
+      .box dt::before {
+        content: '';
+        display: block;
+      }
+
+      /* Encabezado del documento - CENTRADO */
+      .report-header {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #1a1a1a;
+      }
+
+      .report-header .titulo {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+        color: #1a1a1a;
+        margin: 0;
+      }
+
+      .report-header .subtitulo {
+        font-size: 13px;
+        color: #555;
+        margin: 4px 0 0 0;
+        font-weight: 400;
+      }
+
+      .report-header .id-badge {
+        font-size: 12px;
+        font-weight: 600;
+        background: #1a1a1a;
+        color: #fff;
+        padding: 4px 12px;
+        border-radius: 4px;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+      }
+
+      /* Seccion generica */
+      .seccion {
+        margin-bottom: 24px;
+      }
+
+      /* Títulos principales más grandes y CENTRADOS */
+      .seccion-titulo {
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #555;
+        margin: 0 0 10px 0;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #e0e0e0;
+        text-align: center; 
+      }
+
+      /* Detalles generales en Tabla (Invisible) */
+      .detalles-tabla {
+        width: 100%;
+        border-collapse: collapse;
+        border: none;
+        table-layout: fixed;
+      }
+
+      .detalles-tabla td {
+        width: 50%;
+        vertical-align: top;
+        padding: 6px 16px 6px 0;
+        border: none;
+      }
+      
+      .detalles-tabla td:nth-child(even) {
+        padding-left: 16px;
+        padding-right: 0;
+      }
+
+      /* Estructura fija para evitar desalineación */
+      .detalle-item {
+        display: block;
+        padding: 6px 0;
+        border-bottom: 1px solid #f0f0f0;
+        min-height: 46px; 
+        box-sizing: border-box;
+      }
+
+      /* Títulos internos de la tabla MÁS GRANDES */
+      .detalle-label {
+        display: block;
+        font-size: 13px; 
+        font-weight: 600;
+        color: #777;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+      }
+
+      .detalle-valor {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: #1a1a1a;
+        min-height: 18px;
+      }
+
+      /* Bloque de texto */
+      .bloque-texto {
+        background: #f7f7f7;
+        border-left: 3px solid #1a1a1a;
+        border-radius: 0 4px 4px 0;
+        padding: 10px 14px;
+        font-size: 14px;
+        color: #1a1a1a;
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      /* Fotos */
+      .galeria {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 50px;
+        max-width: 75%;
+        margin: 0 auto;
+      }
+
+      .foto-item {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .foto-item img {
+        width: 100%;
+        height: auto;
+        display: block;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        /* margin-bottom: 20px; */
+        margin: 0 auto 20px auto;
+      }
+
+      /* Firma - CENTRADO COMPLETO */
+      .seccion-firma {
+        margin-top: 48px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 4px;
+        width: 100%;
+      }
+
+      .seccion-firma img {
+        max-width: 220px;
+        height: auto;
+        margin: 0 auto 4px auto;
+        display: block;
+      }
+
+      .linea-firma {
+        width: 260px;
+        border-bottom: 1px solid #1a1a1a;
+        margin: 0 auto;
+      }
+
+      .firma-nombre {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 6px 0 0 0;
+        color: #1a1a1a;
+      }
+
+      .firma-rol {
+        font-size: 13px;
+        color: #777;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0;
+      }
+
+      /* Print */
+      @media print {
+        body { padding: 20px 28px; }
+        .galeria { grid-template-columns: repeat(2, 1fr); }
+        .foto-item img { max-height: 160px; object-fit: cover; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <!-- <div class="doc-header">
+      <div class="box">
+        <dt>Fecha</dt>
+        <dd>{{ data_view['date'] }}</dd>
+        <dt>Hora</dt>
+        <dd>{{ data_view['hour'] }}</dd>
+      </div>        
+    </div> -->
+
+    <!-- <div class="report-header">
+      <div>
+        <p class="titulo">Inspección de vehículo</p>
+      </div>
+    </div> -->
+
+    <div class="seccion">
+      <p class="seccion-titulo">Información General</p>
+      
+      <table class="detalles-tabla">
+        <tr>
+          <td>
+            <div class="detalle-item">
+              <span class="detalle-label">Id Inspección</span>
+              <span class="detalle-valor">{{ data_view.inspection.id if data_view.inspection.id else '&nbsp;' }}</span>
+            </div>
+          </td>
+          <td>
+            <div class="detalle-item">
+              <span class="detalle-label">Tipo de Inspección</span>
+              <span class="detalle-valor">{{ data_view.inspection.inspection_type if data_view.inspection.inspection_type else '&nbsp;' }}</span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="detalle-item">
+              <span class="detalle-label">Propietario</span>
+              <span class="detalle-valor">{{ data_view.inspection.owner_name if data_view.inspection.owner_name else '&nbsp;' }}</span>
+            </div>
+          </td>
+          <td>
+            <div class="detalle-item">
+              <span class="detalle-label">Placa</span>
+              <span class="detalle-valor">{{ data_view.inspection.plate if data_view.inspection.plate else '&nbsp;' }}</span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="detalle-item">
+              <span class="detalle-label">Estado del Vehículo</span>
+              <span class="detalle-valor">{{ data_view.inspection.vehicle_status if data_view.inspection.vehicle_status else '&nbsp;' }}</span>
+            </div>
+          </td>
+          <td>
+            <div class="detalle-item">
+              <span class="detalle-label">Kilometraje</span>
+              <span class="detalle-valor">{{ data_view.inspection.mileage if data_view.inspection.mileage else '&nbsp;' }}</span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="detalle-item">
+              <span class="detalle-label">Tipo de Instalación</span>
+              <span class="detalle-valor">{{ data_view.inspection.instalation_type if data_view.inspection.instalation_type else '&nbsp;' }}</span>
+            </div>
+          </td>
+          <td>
+            <div class="detalle-item">
+              <span class="detalle-label">Serial GPS</span>
+              <span class="detalle-valor">{{ data_view.inspection.gps_serial if data_view.inspection.gps_serial else '&nbsp;' }}</span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="detalle-item">
+              <span class="detalle-label">Número Celular</span>
+              <span class="detalle-valor">{{ data_view.inspection.celular_number if data_view.inspection.celular_number else '&nbsp;' }}</span>
+            </div>
+          </td>
+          <td>
+            <div class="detalle-item">
+              <span class="detalle-label">Serial Celular</span>
+              <span class="detalle-valor">{{ data_view.inspection.celular_serial if data_view.inspection.celular_serial else '&nbsp;' }}</span>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="detalle-item">
+              <span class="detalle-label">Inspección realizada por</span>
+              <span class="detalle-valor">{{ data_view.inspection.user if data_view.inspection.user else '&nbsp;' }}</span>
+            </div>
+          </td>
+          <td>
+            <div class="detalle-item">
+              <span class="detalle-label">Fecha / Hora</span>
+              <span class="detalle-valor">
+                {% if data_view.inspection.date or data_view.inspection.hour %}
+                  {{ data_view.inspection.date }} - {{ data_view.inspection.hour }}
+                {% else %}
+                  &nbsp;
+                {% endif %}
+              </span>
+            </div>
+          </td>
+        </tr>
+      </table>
+
+    </div>
+
+    <div class="seccion">
+      <p class="seccion-titulo">Descripción</p>
+      <p class="bloque-texto">{{ data_view.inspection.description }}</p>
+    </div>
+
+    <div class="seccion">
+      <p class="seccion-titulo">Notas</p>
+      <p class="bloque-texto">{{ data_view.inspection.notes }}</p>
+    </div>
+
+    <div class="seccion">
+      <p class="seccion-titulo">Evidencia Fotográfica - {{ data_view.inspection.photos|length }} fotos</p>
+      <div class="galeria">
+        {% for photo in data_view.inspection.photos %}
+          <div class="foto-item">
+            <img src="{{ photo }}">
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="seccion-firma">
+      <img src="{{ data_view.inspection.signature }}">
+      <p class="firma-nombre">{{ data_view.inspection.owner_name }}</p>
+      <div class="linea-firma"></div>
+      <p class="firma-rol">Firma Propietario</p>
+    </div>
+
+  </body>
+</html>

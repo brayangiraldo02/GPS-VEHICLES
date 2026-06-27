@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Header</title>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+        }
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            margin-top: 10px;
+        }
+
+        .header-table td {
+            vertical-align: bottom;
+        }
+
+        .left-space {
+            width: 20%;
+        }
+
+        .title-cell {
+            width: 60%;
+            text-align: center;
+        }
+
+        .date-cell {
+            width: 20%;
+            text-align: right;
+        }
+
+        .title-cell h2 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: bold;
+            color: #222;
+        }
+
+        .box {
+            display: inline-block;
+            border: 1px solid #cfcfcf;
+            padding: 8px 12px;
+            text-align: left;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .box .label {
+            color: #a68ea7;
+            font-weight: bold;
+        }
+
+        .header-line {
+            border: none;
+            border-top: 2px solid #222;
+            margin-top: 18px;
+            margin-bottom: 0;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <table class="header-table">
+        <tr>
+
+            <td class="left-space"></td>
+
+            <td class="title-cell">
+                <!-- <h2>{{ data_view['title'] }}</h2> -->
+            </td>
+
+            <td class="date-cell">
+                <div class="box">
+                    <div>
+                        <span class="label">Fecha:</span>
+                        {{ data_view['date'] }}
+                    </div>
+
+                    <div>
+                        <span class="label">Hora:</span>
+                        {{ data_view['hour'] }}
+                    </div>
+                </div>
+            </td>
+
+        </tr>
+    </table>
+
+    <hr class="header-line">
+
+</body>
+</html>
