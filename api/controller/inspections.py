@@ -491,3 +491,137 @@ async def inspection_report(inspection_id: int, db: Session, current_user: dict)
 
   except Exception as e:
     return JSONResponse(content={"message": str(e)}, status_code=500)
+  
+# ---------------------------------------------------------------------------------------------------------------
+
+async def general_inspections_report(data: InspectionInfo, db: Session, current_user: dict):
+  try:
+    filters = []
+
+    if data.initial_date != '' and data.final_date != '':
+      filters.append(Inspecciones.FECHA >= data.initial_date)
+      filters.append(Inspecciones.FECHA <= data.final_date)
+    
+    if data.owner != '':
+      filters.append(Inspecciones.PROPIETARIO == data.owner)
+    
+    if data.vehicle_id != '':
+        filters.append(Inspecciones.ID_VEHICULO == data.vehicle_id)
+
+    inspections = db.query(Inspecciones).filter(*filters).order_by(Inspecciones.FECHA.desc(), Inspecciones.HORA.desc()).all()
+
+    if not inspections:
+      return JSONResponse(content={"message": "No inspections found"}, status_code=404)
+
+    await update_expired_inspections(db, inspections_list=inspections)
+
+    user_id = current_user.get("codigo")
+    user_name = db.query(Usuarios).filter(Usuarios.ID == user_id).first()
+
+    filtered_inspections = []
+    for inspection in inspections:
+      if inspection.ESTADO == "PEN":
+        if user_id and str(inspection.USUARIO) == user_id:
+          filtered_inspections.append(inspection)
+      else:
+        filtered_inspections.append(inspection)
+
+    inspections = filtered_inspections
+
+    inspections_types = db.query(TiposInspeccion).all()
+    inspections_dict = {inspection.ID: inspection.NOMBRE for inspection in inspections_types}
+    owners_dict = {owner.ID: owner.NOMBRE for owner in db.query(Propietarios).all()}
+
+    inspections_data = []
+    for inspection in inspections:
+      
+      inspections_data.append({
+        "id": inspection.ID,
+        "date": inspection.FECHA.strftime('%d-%m-%Y') + ' ' + inspection.HORA.strftime('%H:%M') if inspection.FECHA and inspection.HORA else None,
+        "id_inspection_type": inspection.TIPO_INSPEC,
+        "inspection_type": inspections_dict.get(inspection.TIPO_INSPEC, ""),
+        "details": inspection.DESCRIPCION,
+        "vehicle_id": inspection.ID_VEHICULO,
+        "plate": inspection.PLACA,
+        "mileage": inspection.KILOMETRAJ if inspection.KILOMETRAJ else "",
+        "owner_id": inspection.PROPIETARIO,
+        "owner_name": owners_dict.get(inspection.PROPIETARIO, ""),
+        "status": "FINALIZADA" if inspection.ESTADO == "FIN" else ("PENDIENTE" if inspection.ESTADO == "PEN" else ("SUSPENDIDA" if inspection.ESTADO == "SUS" else inspection.ESTADO)),
+        "user": inspection.NOMUSUARIO if inspection.NOMUSUARIO else "",
+      })
+
+    inspections_data.sort(key=lambda x: x['id'])
+
+    total_inspections = len(inspections_data)
+
+    panama_timezone = pytz.timezone('America/Panama')
+    now_in_panama = datetime.now(panama_timezone)
+    today = now_in_panama.date()
+    date = now_in_panama.strftime("%d/%m/%Y")
+    hour = now_in_panama.strftime("%I:%M:%S %p")
+
+    title = 'Reporte General de Inspecciones'
+    data_view = {
+      'title': title,
+      'inspections': inspections_data,
+      'total_inspections': total_inspections,
+      'date': date,
+      'hour': hour,
+      'user': user_name.NOMBRE if user_name else "",
+      'dates_range': {
+        'initial_date': datetime.strptime(data.initial_date, "%Y-%m-%d").strftime("%d/%m/%Y") if data.initial_date else "",
+        'final_date': datetime.strptime(data.final_date, "%Y-%m-%d").strftime("%d/%m/%Y") if data.final_date else ""
+      }
+    }
+
+    template_loader = jinja2.FileSystemLoader(searchpath="./templates")
+    template_env = jinja2.Environment(loader=template_loader)
+    header_file = "header.html"
+    footer_file = "footer.html"
+    template = template_env.get_template("general_inspection_report.html")
+    header = template_env.get_template(header_file)
+    footer = template_env.get_template(footer_file)
+    output_text = template.render(data_view=data_view)
+    output_header = header.render(data_view=data_view)
+    output_footer = footer.render(data_view=data_view)
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w') as html_file:
+      html_path = html_file.name
+      html_file.write(output_text)
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w') as header_file:
+      header_path = header_file.name
+      header_file.write(output_header)
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w') as footer_file:
+      footer_path = footer_file.name
+      footer_file.write(output_footer)
+
+      date_str = now_in_panama.strftime("%Y%m%d")
+      short_uuid = uuid.uuid4().hex[:8]
+      pdf_filename = f"reporte_{date_str}_{short_uuid}.pdf"
+      pdf_path = os.path.join(tempfile.gettempdir(), pdf_filename)
+      pdf_path = pdf_path.replace("\\", "/")
+
+    loop = asyncio.get_event_loop()
+    await loop.run_in_executor(
+      PDF_THREAD_POOL,
+      html2pdf,
+      title,
+      html_path,
+      pdf_path,
+      header_path,
+      footer_path
+    )
+
+    background_tasks = BackgroundTasks()
+    background_tasks.add_task(os.remove, html_path)
+    background_tasks.add_task(os.remove, header_path)
+    background_tasks.add_task(os.remove, footer_path)
+
+    return JSONResponse(
+        content={"inspection_pdf": pdf_path}, 
+        status_code=200,
+        background=background_tasks
+    )
+
+  except Exception as e:
+    return JSONResponse(content={"message": str(e)}, status_code=500)

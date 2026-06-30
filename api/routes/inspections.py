@@ -38,3 +38,7 @@ async def put_update_inspection(inspection_id: int, data: NewInspection, db: Ses
 @inspections_router.get('/generate-pdf/{inspection_id}/', tags=["Inspections"])
 async def get_inspection_report(inspection_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
   return await inspection_report(inspection_id, db, current_user)
+
+@inspections_router.post('/generate-general-pdf/', tags=["Inspections"])
+async def post_generate_general_report(data: InspectionInfo, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
+  return await general_inspections_report(data, db, current_user)
