@@ -464,8 +464,11 @@ async def inspection_report(inspection_id: int, db: Session, current_user: dict)
       date_str = now_in_panama.strftime("%Y%m%d")
       short_uuid = uuid.uuid4().hex[:8]
       pdf_filename = f"{vehicle.PLACA}_{date_str}_{short_uuid}.pdf"
-      pdf_path = os.path.join(tempfile.gettempdir(), pdf_filename)
+      temp_dir = os.path.join(upload_directory, 'temp')
+      os.makedirs(temp_dir, exist_ok=True)
+      pdf_path = os.path.join(temp_dir, pdf_filename)
       pdf_path = pdf_path.replace("\\", "/")
+      pdf_url = f"{route_api}uploads/temp/{pdf_filename}"
 
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(
@@ -484,7 +487,7 @@ async def inspection_report(inspection_id: int, db: Session, current_user: dict)
     background_tasks.add_task(os.remove, footer_path)
 
     return JSONResponse(
-        content={"inspection_pdf": pdf_path}, 
+        content={"inspection_pdf": pdf_url}, 
         status_code=200,
         background=background_tasks
     )
@@ -598,8 +601,11 @@ async def general_inspections_report(data: InspectionInfo, db: Session, current_
       date_str = now_in_panama.strftime("%Y%m%d")
       short_uuid = uuid.uuid4().hex[:8]
       pdf_filename = f"reporte_{date_str}_{short_uuid}.pdf"
-      pdf_path = os.path.join(tempfile.gettempdir(), pdf_filename)
+      temp_dir = os.path.join(upload_directory, 'temp')
+      os.makedirs(temp_dir, exist_ok=True)
+      pdf_path = os.path.join(temp_dir, pdf_filename)
       pdf_path = pdf_path.replace("\\", "/")
+      pdf_url = f"{route_api}uploads/temp/{pdf_filename}"
 
     loop = asyncio.get_event_loop()
     await loop.run_in_executor(
@@ -618,7 +624,7 @@ async def general_inspections_report(data: InspectionInfo, db: Session, current_
     background_tasks.add_task(os.remove, footer_path)
 
     return JSONResponse(
-        content={"inspection_pdf": pdf_path}, 
+        content={"inspection_pdf": pdf_url}, 
         status_code=200,
         background=background_tasks
     )

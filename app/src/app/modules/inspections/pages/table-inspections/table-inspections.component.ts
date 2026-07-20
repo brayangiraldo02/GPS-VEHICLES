@@ -44,6 +44,11 @@ export class TableInspectionsComponent implements OnInit {
   pageSizeOptions = signal<number[]>([10, 20, 50]);
   isLoading = signal<boolean>(false);
   isInitialLoading = signal<boolean>(true);
+  isGeneratingReport = signal<boolean>(false);
+  loadingTitle = signal<string>('Cargando Sistema');
+  loadingMessage = signal<string>(
+    'Estamos preparando la información de las inspecciones. Por favor, espera un momento.'
+  );
 
   displayedColumns: string[] = [
     'date',
@@ -329,6 +334,10 @@ export class TableInspectionsComponent implements OnInit {
   }
 
   private reloadTable() {
+    this.loadingTitle.set('Cargando Sistema');
+    this.loadingMessage.set(
+      'Estamos preparando la información de las inspecciones. Por favor, espera un momento.'
+    );
     // Reiniciamos el componente
     this.isInitialLoading.set(true);
 
@@ -384,5 +393,71 @@ export class TableInspectionsComponent implements OnInit {
         this.editInspection(row);
       }
     });
+  }
+
+  generateInspectionReport(row: Inspection) {
+    this.loadingTitle.set('Generando Reporte');
+    this.loadingMessage.set(
+      'Estamos procesando el documento PDF de la inspección. Por favor, espera un momento.'
+    );
+    this.isGeneratingReport.set(true);
+
+    this.apiService
+      .get<{ inspection_pdf: string }>(`/inspections/generate-pdf/${row.id}/`)
+      .pipe(
+        finalize(() => {
+          this.isGeneratingReport.set(false);
+        })
+      )
+      .subscribe({
+        next: (res) => {
+          if (res && res.inspection_pdf) {
+            window.open(res.inspection_pdf, '_blank');
+          }
+        },
+        error: (error) => {
+          console.error('Error generating report:', error);
+        },
+      });
+  }
+
+  generateGeneralReport() {
+    const filters: any = {
+      owner: this.selectedOwnerId || '',
+      vehicle_id: this.selectedVehicleId || '',
+      initial_date: '',
+      final_date: '',
+    };
+
+    if (this.range.value.start) {
+      filters.initial_date = this.range.value.start.toISOString().split('T')[0];
+    }
+    if (this.range.value.end) {
+      filters.final_date = this.range.value.end.toISOString().split('T')[0];
+    }
+
+    this.loadingTitle.set('Generando Reporte General');
+    this.loadingMessage.set(
+      'Estamos procesando el reporte general de inspecciones. Por favor, espera un momento.'
+    );
+    this.isGeneratingReport.set(true);
+
+    this.apiService
+      .post<{ inspection_pdf: string }>('/inspections/generate-general-pdf/', filters)
+      .pipe(
+        finalize(() => {
+          this.isGeneratingReport.set(false);
+        })
+      )
+      .subscribe({
+        next: (res) => {
+          if (res && res.inspection_pdf) {
+            window.open(res.inspection_pdf, '_blank');
+          }
+        },
+        error: (error) => {
+          console.error('Error generating general report:', error);
+        },
+      });
   }
 }
