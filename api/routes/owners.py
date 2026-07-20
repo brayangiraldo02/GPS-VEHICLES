@@ -1,10 +1,15 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from config.dbconnection import get_db
-from controller.owners import owners_list
+from controller.owners import *
+from schemas.owner import *
 
 owners_router = APIRouter()
 
 @owners_router.get('/', tags=["Owners"])
 async def get_owners(db: Session = Depends(get_db)):
   return await owners_list(db)
+
+@owners_router.post('/all/', tags=["Owners"])
+async def post_all_owners(pagination: OwnerPagination, db: Session = Depends(get_db)):
+  return await all_owners(pagination, db)

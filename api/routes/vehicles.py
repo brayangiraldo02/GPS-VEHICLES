@@ -15,5 +15,5 @@ async def post_vehicle_info(vehicle_plate: str, db: Session = Depends(get_db)):
   return await vehicle_info(vehicle_plate, db)
 
 @vehicles_router.post('/all/', tags=["Vehicles"])
-async def post_all_vehicles(pagination: VehiclePagination = Depends(), db: Session = Depends(get_db)):
+async def post_all_vehicles(pagination: VehiclePagination, db: Session = Depends(get_db)):
   return await all_vehicles(pagination, db)
