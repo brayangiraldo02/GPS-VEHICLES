@@ -13,3 +13,7 @@ async def get_owners(db: Session = Depends(get_db)):
 @owners_router.post('/all/', tags=["Owners"])
 async def post_all_owners(pagination: OwnerPagination, db: Session = Depends(get_db)):
   return await all_owners(pagination, db)
+
+@owners_router.get('/info/{owner_id}', tags=["Owners"])
+async def get_owner_info(owner_id: str, db: Session = Depends(get_db)):
+  return await owner_info(owner_id, db)

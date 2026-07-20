@@ -71,3 +71,28 @@ async def all_owners(pagination: OwnerPagination, db: Session):
     return JSONResponse(content=jsonable_encoder(response), status_code=200)
   except Exception as e:
     return JSONResponse(content={"error": str(e)}, status_code=500)
+  
+# ---------------------------------------------------------------------------------------------------------------
+
+async def owner_info(owner_id: str, db: Session):
+  try:
+    owner = db.query(Propietarios).filter(Propietarios.ID == owner_id).first()
+
+    if not owner:
+      return JSONResponse(content={"message": "Owner not found"}, status_code=404)
+
+    response = {
+      'id': owner.ID,
+      'name': owner.NOMBRE,
+      'ruc': owner.RUC,
+      'city_id': owner.ID_CIUDAD,
+      'address': owner.DIRECCION,
+      'phone': owner.TELEFONO,
+      'email': owner.CORREO,
+      'status': owner.ESTADO,
+      'notes': owner.OBSERVA
+    }
+
+    return JSONResponse(content=jsonable_encoder(response), status_code=200)
+  except Exception as e:
+    return JSONResponse(content={"error": str(e)}, status_code=500)
