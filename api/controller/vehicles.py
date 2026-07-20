@@ -1,5 +1,6 @@
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
+from sqlalchemy import func, cast, Integer
 from sqlalchemy.orm import Session
 from models.vehiculos import Vehiculos
 from models.marcas import Marcas
@@ -7,6 +8,7 @@ from models.colores import Colores
 from models.tiposvehiculos import TiposVehiculos
 from models.propietarios import Propietarios
 from models.estados import Estados
+from schemas.vehicles import *
 
 # ---------------------------------------------------------------------------------------------------------------
 
@@ -95,6 +97,68 @@ async def vehicle_info(vehicle_plate: str, db: Session):
       'cel_num': vehicle.CEL_NUMERO,
       'date_created': vehicle.FEC_CREADO
     }
+
+    return JSONResponse(content=jsonable_encoder(response), status_code=200)
+  except Exception as e:
+    return JSONResponse(content={"error": str(e)}, status_code=500)
+
+# ---------------------------------------------------------------------------------------------------------------
+
+async def all_vehicles(pagination: VehiclePagination, db: Session):
+  try:
+    if pagination.page_number < 1 or pagination.page_size < 1:
+      return JSONResponse(content={"message": "Invalid page number or page size"}, status_code=400)
+
+    query = db.query(
+      Vehiculos.ID,
+      Vehiculos.PLACA,
+      Vehiculos.ID_TIPOVEH,
+      Vehiculos.ID_ESTADO,
+      Vehiculos.ID_PROPIE,
+      TiposVehiculos.NOMBRE.label('type_name'),
+      Estados.NOMBRE.label('status_name'),
+      Propietarios.NOMBRE.label('owner_name'),
+    ).outerjoin(TiposVehiculos, Vehiculos.ID_TIPOVEH == TiposVehiculos.ID
+    ).outerjoin(Estados, Vehiculos.ID_ESTADO == Estados.ID
+    ).outerjoin(Propietarios, Vehiculos.ID_PROPIE == Propietarios.ID).order_by(cast(Vehiculos.ID, Integer)).all()
+
+    vehicles = [
+      {
+        'id': vehicle.ID,
+        'plate': vehicle.PLACA, 
+        'owner_id': vehicle.ID_PROPIE,
+        'owner_name': vehicle.owner_name if vehicle.owner_name else None,
+        'type_id': vehicle.ID_TIPOVEH,
+        'type_name': vehicle.type_name if vehicle.type_name else None,
+        'status_id': vehicle.ID_ESTADO,
+        'status_name': vehicle.status_name if vehicle.status_name else None,
+      } for vehicle in query
+    ]
+
+    if pagination.search and pagination.search.strip():
+      search_term = pagination.search.strip().lower()
+      def matches(vehicle):
+        for key, value in vehicle.items():
+          if value is None:
+            continue
+          if search_term in str(value).lower():
+            return True
+        return False
+      vehicles = [vehicle for vehicle in vehicles if matches(vehicle)]
+
+    total_items = len(vehicles)
+    total_pages = (total_items + pagination.page_size - 1) // pagination.page_size if total_items else 0
+
+    offset = (pagination.page_number - 1) * pagination.page_size
+
+    vehicles = vehicles[offset:offset + pagination.page_size]
+
+    response = {
+        'page_number': pagination.page_number,
+        'total_items': total_items,
+        'total_pages': total_pages,
+        'items': vehicles
+      }
 
     return JSONResponse(content=jsonable_encoder(response), status_code=200)
   except Exception as e:

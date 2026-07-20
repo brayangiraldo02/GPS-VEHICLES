@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from config.dbconnection import get_db
 from controller.vehicles import *
+from schemas.vehicles import *
 
 vehicles_router = APIRouter()
 
@@ -12,3 +13,7 @@ async def post_vehicles(owner_id: str = None, db: Session = Depends(get_db)):
 @vehicles_router.post('/info/', tags=["Vehicles"])
 async def post_vehicle_info(vehicle_plate: str, db: Session = Depends(get_db)):
   return await vehicle_info(vehicle_plate, db)
+
+@vehicles_router.post('/all/', tags=["Vehicles"])
+async def post_all_vehicles(pagination: VehiclePagination = Depends(), db: Session = Depends(get_db)):
+  return await all_vehicles(pagination, db)
